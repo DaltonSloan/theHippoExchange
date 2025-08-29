@@ -1,0 +1,19 @@
+# Build output
+bin/
+obj/
+
+# VSCode settings
+.vscode/
+
+# Dev container + Docker
+.devcontainer/
+docker-compose.override.yml
+*.pid
+*.log
+
+# User secrets
+**/secrets.json
+.env
+
+# OS files
+.DS_Store
