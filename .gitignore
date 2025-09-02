@@ -6,7 +6,6 @@ obj/
 .vscode/
 
 # Dev container + Docker
-.devcontainer/
 docker-compose.override.yml
 *.pid
 *.log

@@ -1,0 +1,34 @@
+{
+  "name": "HypoExchange Dev",
+  "dockerComposeFile": [
+    "../docker-compose.yml",
+    "../docker-compose.dev.yml"
+  ],
+  "service": "api-dev",
+  "composeProfiles": ["dev"],
+  "workspaceFolder": "/workspace",
+  "features": {},
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csharp",
+        "ms-azuretools.vscode-docker",
+        "ms-vscode.vscode-typescript-next",
+        "humao.rest-client"
+      ]
+    }
+  },
+  "postCreateCommand": "dotnet restore \"theHippoExchange.sln\"",
+  "portsAttributes": {
+    "443": { "label": "HTTPS" },
+    "80":  { "label": "HTTP" },
+    "27017": { "label": "Mongo" },
+    "8081": { "label": "Mongo Express" },
+    "8082": { "label": "HTTP (host)" },
+    "8445": { "label": "HTTPS (host)" }
+  },
+  "runServices": ["api-dev", "mongodb", "mongo-express"],
+  "overrideCommand": true,
+  "containerUser": "dev",
+  "shutdownAction": "none"
+}
