@@ -15,11 +15,6 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Log the configuration values to diagnose the issue.
-var mongoSettings = app.Services.GetRequiredService<IOptions<MongoSettings>>().Value;
-app.Logger.LogInformation("MongoSettings.ConnectionString is null: {isConnectionStringNull}", string.IsNullOrEmpty(mongoSettings.ConnectionString));
-app.Logger.LogInformation("MongoSettings.Database: {Database}", mongoSettings.Database);
-
 // If we're in a container in dev, we won't have the dev cert.
 // The docker-compose file sets the URL to http only, so we need to clear
 // the default https endpoint to prevent Kestrel from trying to load the cert.

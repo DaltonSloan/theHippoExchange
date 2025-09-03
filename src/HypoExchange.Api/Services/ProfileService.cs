@@ -17,7 +17,8 @@ public class ProfileService
     public ProfileService(IOptions<MongoSettings> opt)
     {
         var client = new MongoClient(opt.Value.ConnectionString);
-        var db = client.GetDatabase(opt.Value.Database);
+        // TEMPORARY DEBUGGING: Hardcode database name
+        var db = client.GetDatabase("theHippoExchange");
         _profiles = db.GetCollection<PersonalProfile>("profiles");
     }
 
