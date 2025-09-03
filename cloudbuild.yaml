@@ -2,43 +2,38 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 steps:
-  # 1) Build
-  - name: gcr.io/cloud-builders/docker
-    dir: src/HypoExchange.Api
-    args:
-      - build
-      - -t
-      - $_GCR_HOSTNAME/$PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
-      - .
+  # 1. Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', '$_GCR_HOSTNAME/$PROJECT_ID/$_SERVICE_NAME/$_SERVICE_NAME:$COMMIT_SHA', '.']
+    dir: 'src/HypoExchange.Api'
 
-  # 2) Push
-  - name: gcr.io/cloud-builders/docker
-    args:
-      - push
-      - $_GCR_HOSTNAME/$PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+  # 2. Push the container image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', '$_GCR_HOSTNAME/$PROJECT_ID/$_SERVICE_NAME/$_SERVICE_NAME:$COMMIT_SHA']
 
-  # 3) Deploy to Cloud Run
-  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+  # 3. Deploy the container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
-      - run
-      - deploy
-      - $_SERVICE_NAME
-      - --image
-      - $_GCR_HOSTNAME/$PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
-      - --region
-      - $_REGION
-      - --platform
-      - managed
-      - --allow-unauthenticated
-      - --set-secrets=Mongo__ConnectionString=MONGO_CONNECTION_STRING:latest
+      - 'run'
+      - 'deploy'
+      - '$_SERVICE_NAME'
+      - '--image'
+      - '$_GCR_HOSTNAME/$PROJECT_ID/$_SERVICE_NAME/$_SERVICE_NAME:$COMMIT_SHA'
+      - '--region'
+      - '$_REGION'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--set-env-vars=Mongo__Database=$_MONGO_DB_NAME'
+      - '--set-secrets=Mongo__ConnectionString=MONGO_CONNECTION_STRING:latest'
 
-# Substitutions (set here OR in the trigger UI)
+# Substitutions (can be overridden in the trigger)
 substitutions:
-  _SERVICE_NAME: hypo-exchange-api
-  _REGION: us-central1
-  _GCR_HOSTNAME: us-central1-docker.pkg.dev
-  _REPO_NAME: thehippoexchange   # <-- must be lowercase and must exist in Artifact Registry
+  _SERVICE_NAME: 'hypo-exchange-api'
+  _REGION: 'us-central1'
+  _GCR_HOSTNAME: 'us-central1-docker.pkg.dev'
+  _MONGO_DB_NAME: 'HypoExchange'
 
 images:
-  - $_GCR_HOSTNAME/$PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+  - '$_GCR_HOSTNAME/$PROJECT_ID/$_SERVICE_NAME/$_SERVICE_NAME:$COMMIT_SHA'
