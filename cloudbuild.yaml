@@ -1,5 +1,16 @@
 options:
-  logging: CLOUD_LOGGING_ONLY   # <- fix for "build.service_account" + logging requirement
+  loggi    args:
+      - 'run'
+      - 'deploy'
+      - '$_SERVICE_NAME'
+      - '--image'
+      - '$_GCR_HOSTNAME/$PROJECT_ID/$_SERVICE_NAME/$_SERVICE_NAME:$COMMIT_SHA'
+      - '--region'
+      - '$_REGION'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--set-secrets=Mongo__ConnectionString=MONGO_CONNECTION_STRING:latest'GGING_ONLY   # <- fix for "build.service_account" + logging requirement
 
 steps:
   # 1) Build
