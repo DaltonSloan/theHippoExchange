@@ -10,7 +10,6 @@ RUN dotnet publish -c Release -o /out /p:UseAppHost=false
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 ENV ASPNETCORE_URLS=http://+:8080
 WORKDIR /app
-RUN adduser --disabled-password --home /home/app app && chown -R app:app /app
 USER app
 COPY --chown=app:app --from=build /out ./
 
