@@ -4,12 +4,12 @@ options:
 steps:
   # 1) Build
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', '$_GCR_HOSTNAME/$PROJECT_ID/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA', '.']
+    args: ['build', '-t', '$_GCR_HOSTNAME/$PROJECT_ID/$_SERVICE_NAME/$_SERVICE_NAME:$COMMIT_SHA', '.']
     dir: 'src/HypoExchange.Api'
 
   # 2) Push
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', '$_GCR_HOSTNAME/$PROJECT_ID/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA']
+    args: ['push', '$_GCR_HOSTNAME/$PROJECT_ID/$_SERVICE_NAME/$_SERVICE_NAME:$COMMIT_SHA']
 
   # 3) Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -18,8 +18,8 @@ steps:
       - run
       - deploy
       - '$_SERVICE_NAME'
-      - --image
-      - '$_GCR_HOSTNAME/$PROJECT_ID/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA'
+            - '--image'
+      - '$_GCR_HOSTNAME/$PROJECT_ID/$_SERVICE_NAME/$_SERVICE_NAME:$COMMIT_SHA'
       - --region
       - '$_REGION'
       - --platform
@@ -34,5 +34,4 @@ substitutions:
   _GCR_HOSTNAME: 'us-central1-docker.pkg.dev'
 
 images:
-  - '$_GCR_HOSTNAME/$PROJECT_ID/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA'
-  
+  - '$_GCR_HOSTNAME/$PROJECT_ID/$_SERVICE_NAME/$_SERVICE_NAME:$COMMIT_SHA'
