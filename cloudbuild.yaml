@@ -33,7 +33,7 @@ substitutions:
   _SERVICE_NAME: 'hypo-exchange-api'
   _REGION: 'us-central1'
   _GCR_HOSTNAME: 'us-central1-docker.pkg.dev'
-  _MONGO_DB_NAME: 'HypoExchange'
+  _MONGO_DB_NAME: 'theHippoExchange'
   _ARTIFACT_REGISTRY_REPO: 'thehippoexchange' # The name of your Artifact Registry repo
 
 images:
