@@ -25,6 +25,7 @@ steps:
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
+      - '--set-env-vars=Mongo__Database=$_MONGO_DB_NAME'
       - '--set-secrets=Mongo__ConnectionString=MONGO_CONNECTION_STRING:latest'
 
 # Substitutions (can be overridden in the trigger)
