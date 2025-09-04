@@ -2,6 +2,7 @@ using HypoExchange.Models;
 using HypoExchange.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
+using Cowsay;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://*:8080");
@@ -45,7 +46,10 @@ if (builder.Environment.IsDevelopment() && builder.Configuration["ASPNETCORE_URL
     app.Urls.Add("http://*:8080");
 }
 
-app.MapGet("/health", () => Results.Ok("Welcome to the herd!"));   // for container health
+app.MapGet("/health", () => {
+    var cow = new Cow();
+    return Results.Text(cow.Say("Welcome to the herd!"), "text/plain");
+});
 
 app.UseSwagger();
 app.UseSwaggerUI();
