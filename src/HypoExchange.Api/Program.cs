@@ -45,7 +45,7 @@ if (builder.Environment.IsDevelopment() && builder.Configuration["ASPNETCORE_URL
     app.Urls.Add("http://*:8080");
 }
 
-app.MapGet("/health", () => Results.Ok("ok"));   // for container health
+app.MapGet("/health", () => Results.Ok("Welcome to the herd!"));   // for container health
 
 app.UseSwagger();
 app.UseSwaggerUI();
