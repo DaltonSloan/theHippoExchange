@@ -46,10 +46,8 @@ if (builder.Environment.IsDevelopment() && builder.Configuration["ASPNETCORE_URL
     app.Urls.Add("http://*:8080");
 }
 
-app.MapGet("/health", () => {
-    var cow = new Cow();
-    return Results.Text(cow.Say("Welcome to the herd!"), "text/plain");
-});
+var staticCow = await DefaultCattleFarmer.RearCowWithDefaults("default");
+app.MapGet("/health", () => Results.Text(staticCow.Say("Welcome to the herd!")));
 
 app.UseSwagger();
 app.UseSwaggerUI();
