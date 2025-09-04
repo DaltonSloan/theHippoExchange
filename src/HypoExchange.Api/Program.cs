@@ -1,6 +1,7 @@
 using HypoExchange.Models;
 using HypoExchange.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://*:8080");
@@ -10,7 +11,28 @@ builder.Services.Configure<MongoSettings>(builder.Configuration.GetSection("Mong
 builder.Services.AddSingleton<ProfileService>();
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "HypoExchange API", Version = "v1" });
+    c.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
+    {
+        Description = "Temporary User ID for authentication. Enter any string.",
+        Name = "X-User-Id",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "ApiKeyScheme"
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "ApiKey" }
+            },
+            new string[] {}
+        }
+    });
+});
 
 var app = builder.Build();
 
