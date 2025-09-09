@@ -3,6 +3,9 @@ using HypoExchange.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 using Cowsay;
+using Figgle;
+using Figgle.Fonts;
+using HypoExchange.Models.Clerk;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://*:8080");
@@ -46,8 +49,10 @@ if (builder.Environment.IsDevelopment() && builder.Configuration["ASPNETCORE_URL
     app.Urls.Add("http://*:8080");
 }
 
+FiggleFont font = FiggleFonts.Bulbhead;
+
 var staticCow = await DefaultCattleFarmer.RearCowWithDefaults("default");
-app.MapGet("/health", () => Results.Text(staticCow.Say("Welcome to the herd!")));
+app.MapGet("/join", () => Results.Text(font.Render("Welcome to the bloat!")));
 
 app.UseSwagger();
 app.UseSwaggerUI();
@@ -80,6 +85,25 @@ app.MapPost("/api/profile", async ([FromServices] ProfileService svc, HttpContex
     incoming.UserId = userId;
     await svc.UpsertAsync(incoming);
     return Results.Ok(incoming);
+});
+
+app.MapPost("/api/webhooks/clerk", async ([FromServices] ProfileService profileService, [FromBody] ClerkWebhookPayload payload) =>
+{
+    if (payload.Type == "user.created")
+    {
+        var userData = payload.Data;
+        var newProfile = new PersonalProfile
+        {
+            UserId = userData.Id,
+            FullName = $"{userData.FirstName} {userData.LastName}".Trim(),
+            // Email, Phone, and Address will be empty by default.
+            // The user can update them later via the /api/profile endpoint.
+        };
+
+        await profileService.UpsertAsync(newProfile);
+    }
+
+    return Results.Ok();
 });
 
 app.Run();
