@@ -13,6 +13,7 @@ docker-compose.override.yml
 # User secrets
 **/secrets.json
 .env
+*.env
 
 # OS files
 .DS_Store
