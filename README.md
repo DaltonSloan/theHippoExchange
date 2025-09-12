@@ -71,16 +71,16 @@ Action: Create a new file named .env in the root directory of the project.
 Copy and paste the following template into your newly created .env file. These variables are used by docker-compose.dev.yml to configure the MongoDB container and the API service.
 
 # MongoDB Credentials
-# These are used to create the root user for the MongoDB instance.
+###These are used to create the root user for the MongoDB instance.
 MONGO_USERNAME=devuser
 MONGO_PASSWORD=devpass
 
 # MongoDB Database Name
-# This defines the name of the database to be used.
+### This defines the name of the database to be used.
 MONGO_DB_NAME=HypoExchange
 
 # This variable is used by the mongo-init script to create the initial database.
-# It should match MONGO_DB_NAME.
+### It should match MONGO_DB_NAME.
 MONGO_INITDB_DATABASE=HypoExchange
 
 How These Variables Work:
