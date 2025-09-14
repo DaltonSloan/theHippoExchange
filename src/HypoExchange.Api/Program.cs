@@ -54,6 +54,8 @@ FiggleFont font = FiggleFonts.Bulbhead;
 var staticCow = await DefaultCattleFarmer.RearCowWithDefaults("default");
 app.MapGet("/join", () => Results.Text(font.Render("Welcome to the bloat!")));
 
+app.MapGet("/", () => "The Hippo Exchange API is running!");
+
 app.UseSwagger();
 app.UseSwaggerUI();
 
