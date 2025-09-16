@@ -1,7 +1,7 @@
-# HypoExchange
+# HippoExchange
 
 
-# HypoExchange Setup Guide
+# HippoExchange Setup Guide
 
 ## ✅ Option A — VS Code (Dev Container, recommended)
 
@@ -21,7 +21,7 @@
 
 3. Once it attaches, in the integrated terminal:
    ```bash
-   cd /workspace/src/HypoExchange.Api
+   cd /workspace/src/HippoExchange.Api
    dotnet restore
    dotnet run   # or: dotnet watch run
    

@@ -1,7 +1,7 @@
 # BUILD
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY HypoExchange.Api.csproj .
+COPY HippoExchange.Api.csproj .
 RUN dotnet restore
 COPY . .
 RUN dotnet publish -c Release -o /out /p:UseAppHost=false
@@ -16,4 +16,4 @@ COPY --chown=app:app --from=build /out ./
 # Health endpoint wiring (match compose healthcheck)
 # Add this minimal endpoint in Program.cs: app.MapGet("/health", () => Results.Ok("ok")));
 EXPOSE 8080
-ENTRYPOINT ["dotnet", "HypoExchange.Api.dll"]
+ENTRYPOINT ["dotnet", "HippoExchange.Api.dll"]

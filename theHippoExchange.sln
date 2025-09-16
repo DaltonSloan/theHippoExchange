@@ -1,29 +1,27 @@
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.5.2.0
+VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{75522550-4895-482C-85D5-523D71B3630B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HypoExchange.Api", "src\HypoExchange.Api\HypoExchange.Api.csproj", "{A0A1374F-54A3-0074-081E-ABD2727FBEBB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HippoExchange.Api", "src\HippoExchange.Api\HippoExchange.Api.csproj", "{4843E500-9BBF-4169-B778-9AFC8CF7EA36}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{A0A1374F-54A3-0074-081E-ABD2727FBEBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A0A1374F-54A3-0074-081E-ABD2727FBEBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A0A1374F-54A3-0074-081E-ABD2727FBEBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A0A1374F-54A3-0074-081E-ABD2727FBEBB}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{A0A1374F-54A3-0074-081E-ABD2727FBEBB} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4843E500-9BBF-4169-B778-9AFC8CF7EA36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4843E500-9BBF-4169-B778-9AFC8CF7EA36}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4843E500-9BBF-4169-B778-9AFC8CF7EA36}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4843E500-9BBF-4169-B778-9AFC8CF7EA36}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {643AA0E2-8730-4A1B-A0E5-A5697A8CD4CC}
+	GlobalSection(NestedProjects) = preSolution
+		{4843E500-9BBF-4169-B778-9AFC8CF7EA36} = {75522550-4895-482C-85D5-523D71B3630B}
 	EndGlobalSection
 EndGlobal

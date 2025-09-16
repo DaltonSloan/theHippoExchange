@@ -2,10 +2,10 @@ services:
   api-dev:
     profiles: ["dev"]
     build:
-      context: ./src/HypoExchange.Api
+      context: ./src/HippoExchange.Api
       dockerfile: Dockerfile.dev
-    image: hypoexchange/api-dev:latest
-    container_name: hypoexchange-api-dev
+    image: hippoexchange/api-dev:latest
+    container_name: hippoexchange-api-dev
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:80
@@ -30,6 +30,8 @@ services:
     volumes:
       - mongo-data:/data/db
       - ./mongo-init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "27017:27017"
     restart: unless-stopped
 
   mongo-express:

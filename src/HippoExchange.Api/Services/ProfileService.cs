@@ -1,8 +1,8 @@
-using HypoExchange.Models;
+using HippoExchange.Models;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
-namespace HypoExchange.Services;
+namespace HippoExchange.Services;
 
 public class MongoSettings
 {

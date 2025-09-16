@@ -5,7 +5,7 @@ steps:
   # 1. Build the container image
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', '$_GCR_HOSTNAME/$PROJECT_ID/$_ARTIFACT_REGISTRY_REPO/$_SERVICE_NAME:$COMMIT_SHA', '.']
-    dir: 'src/HypoExchange.Api'
+    dir: 'src/HippoExchange.Api'
 
   # 2. Push the container image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
@@ -30,7 +30,7 @@ steps:
 
 # Substitutions (can be overridden in the trigger)
 substitutions:
-  _SERVICE_NAME: 'hypo-exchange-api'
+  _SERVICE_NAME: 'hippo-exchange-api'
   _REGION: 'us-central1'
   _GCR_HOSTNAME: 'us-central1-docker.pkg.dev'
   _MONGO_DB_NAME: 'theHippoExchange'
