@@ -2,9 +2,9 @@ services:
   api:
     profiles: ["prod"]
     build:
-      context: ./src/HypoExchange.Api
+      context: ./src/HippoExchange.Api
       dockerfile: Dockerfile
-    image: hypoexchange/api:latest
+    image: hippoexchange/api:latest
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       Mongo__ConnectionString: "mongodb://${MONGO_PROD_USERNAME}:${MONGO_PROD_PASSWORD}@mongodb:27017/?authSource=admin"

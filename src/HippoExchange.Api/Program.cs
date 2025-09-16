@@ -1,5 +1,5 @@
-using HypoExchange.Models;
-using HypoExchange.Services;
+using HippoExchange.Models;
+using HippoExchange.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 using Cowsay;
@@ -17,7 +17,7 @@ builder.Services.AddSingleton<ProfileService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "HypoExchange API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "HippoExchange API", Version = "v1" });
     c.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
     {
         Description = "Temporary User ID for authentication. Enter any string.",
@@ -77,16 +77,25 @@ app.MapGet("/api/profile", async ([FromServices] ProfileService svc, HttpContext
 });
 
 // POST create/update profile
-app.MapPost("/api/profile", async ([FromServices] ProfileService svc, HttpContext ctx, [FromBody] PersonalProfile incoming) =>
+app.MapPost("/api/profile", async ([FromServices] ProfileService svc, HttpContext ctx, [FromBody] UpdateProfileRequest request) =>
 {
     var userId = GetUserId(ctx);
     if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
 
-    incoming.UserId = userId;
-    await svc.UpsertAsync(incoming);
-    return Results.Ok(incoming);
+    // Get the existing profile or create a new one if it doesn't exist
+    var profile = await svc.GetByUserIdAsync(userId) ?? new PersonalProfile { UserId = userId };
+
+    // Update the profile with the data from the request
+    profile.FullName = request.FullName;
+    profile.Email = request.Email;
+    profile.Phone = request.Phone;
+    profile.Address = request.Address;
+
+    await svc.UpsertAsync(profile);
+    return Results.Ok(profile);
 });
 
+<<<<<<< HEAD:src/HypoExchange.Api/Program.cs
 app.MapPost("/api/webhooks/clerk", async ([FromServices] ProfileService profileService, [FromBody] ClerkWebhookPayload payload) =>
 {
     if (payload.Type == "user.created")
@@ -107,3 +116,15 @@ app.MapPost("/api/webhooks/clerk", async ([FromServices] ProfileService profileS
 });
 
 app.Run();
+=======
+app.Run();
+
+// Define the model for the POST request body. This is used by Swagger to generate the correct UI and example.
+public class UpdateProfileRequest
+{
+    public string FullName { get; set; } = "";
+    public string Email { get; set; } = "";
+    public string Phone { get; set; } = "";
+    public string Address { get; set; } = "";
+}
+>>>>>>> dev:src/HippoExchange.Api/Program.cs

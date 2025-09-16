@@ -1,6 +1,10 @@
 using System.Text.Json.Serialization;
 
+<<<<<<< HEAD:src/HypoExchange.Api/Models/ClerkModels.cs
 namespace HypoExchange.Models.Clerk;
+=======
+namespace HippoExchange.Models.Clerk;
+>>>>>>> dev:src/HippoExchange.Api/Models/ClerkModels.cs
 
 public class ClerkWebhookPayload
 {
