@@ -1,11 +1,11 @@
 using HippoExchange.Models;
+using HippoExchange.Models.Clerk;
 using HippoExchange.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 using Cowsay;
 using Figgle;
 using Figgle.Fonts;
-using HypoExchange.Models.Clerk;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://*:8080");
@@ -77,25 +77,16 @@ app.MapGet("/api/profile", async ([FromServices] ProfileService svc, HttpContext
 });
 
 // POST create/update profile
-app.MapPost("/api/profile", async ([FromServices] ProfileService svc, HttpContext ctx, [FromBody] UpdateProfileRequest request) =>
+app.MapPost("/api/profile", async ([FromServices] ProfileService svc, HttpContext ctx, [FromBody] PersonalProfile incoming) =>
 {
     var userId = GetUserId(ctx);
     if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
 
-    // Get the existing profile or create a new one if it doesn't exist
-    var profile = await svc.GetByUserIdAsync(userId) ?? new PersonalProfile { UserId = userId };
-
-    // Update the profile with the data from the request
-    profile.FullName = request.FullName;
-    profile.Email = request.Email;
-    profile.Phone = request.Phone;
-    profile.Address = request.Address;
-
-    await svc.UpsertAsync(profile);
-    return Results.Ok(profile);
+    incoming.UserId = userId;
+    await svc.UpsertAsync(incoming);
+    return Results.Ok(incoming);
 });
 
-<<<<<<< HEAD:src/HypoExchange.Api/Program.cs
 app.MapPost("/api/webhooks/clerk", async ([FromServices] ProfileService profileService, [FromBody] ClerkWebhookPayload payload) =>
 {
     if (payload.Type == "user.created")
@@ -116,15 +107,3 @@ app.MapPost("/api/webhooks/clerk", async ([FromServices] ProfileService profileS
 });
 
 app.Run();
-=======
-app.Run();
-
-// Define the model for the POST request body. This is used by Swagger to generate the correct UI and example.
-public class UpdateProfileRequest
-{
-    public string FullName { get; set; } = "";
-    public string Email { get; set; } = "";
-    public string Phone { get; set; } = "";
-    public string Address { get; set; } = "";
-}
->>>>>>> dev:src/HippoExchange.Api/Program.cs
