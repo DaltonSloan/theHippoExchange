@@ -6,9 +6,25 @@ using Microsoft.OpenApi.Models;
 using Cowsay;
 using Figgle;
 using Figgle.Fonts;
+using Google.Cloud.SecretManager.V1;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://*:8080");
+
+// If not in development, fetch the connection string from Google Secret Manager
+if (!builder.Environment.IsDevelopment())
+{
+    const string projectId = "337619689021";
+    const string secretId = "MONGO_CONNECTION_STRING";
+    const string secretVersion = "latest";
+
+    var client = SecretManagerServiceClient.Create();
+    var secretVersionName = new SecretVersionName(projectId, secretId, secretVersion);
+    var result = client.AccessSecretVersion(secretVersionName);
+    var connectionString = result.Payload.Data.ToStringUtf8();
+
+    builder.Configuration["Mongo:ConnectionString"] = connectionString;
+}
 
 // Bind Mongo settings from env vars or appsettings
 builder.Services.Configure<MongoSettings>(builder.Configuration.GetSection("Mongo"));
@@ -77,14 +93,20 @@ app.MapGet("/api/profile", async ([FromServices] ProfileService svc, HttpContext
 });
 
 // POST create/update profile
-app.MapPost("/api/profile", async ([FromServices] ProfileService svc, HttpContext ctx, [FromBody] PersonalProfile incoming) =>
+app.MapPost("/api/profile", async ([FromServices] ProfileService svc, HttpContext ctx, [FromBody] UpdateProfileRequest incoming) =>
 {
     var userId = GetUserId(ctx);
     if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
 
-    incoming.UserId = userId;
-    await svc.UpsertAsync(incoming);
-    return Results.Ok(incoming);
+    var profile = await svc.GetByUserIdAsync(userId) ?? new PersonalProfile { UserId = userId };
+
+    profile.FullName = incoming.FullName;
+    profile.Email = incoming.Email;
+    profile.Phone = incoming.Phone;
+    profile.Address = incoming.Address;
+
+    await svc.UpsertAsync(profile);
+    return Results.Ok(profile);
 });
 
 app.MapPost("/api/webhooks/clerk", async ([FromServices] ProfileService profileService, [FromBody] ClerkWebhookPayload payload) =>

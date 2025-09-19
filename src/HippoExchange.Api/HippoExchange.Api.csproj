@@ -9,7 +9,8 @@
     <PackageReference Include="Cowsay" Version="1.1.19" />
     <PackageReference Include="Figgle" Version="0.6.5" />
     <PackageReference Include="Figgle.Fonts" Version="0.6.5" />
-    <PackageReference Include="MongoDB.Driver" Version="2.25.0" />
+    <PackageReference Include="Google.Cloud.SecretManager.V1" Version="2.6.0" />
+    <PackageReference Include="MongoDB.Driver" Version="3.5.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="9.0.4" />
   </ItemGroup>
