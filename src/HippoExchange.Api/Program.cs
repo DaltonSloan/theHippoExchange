@@ -122,7 +122,11 @@ app.MapPost("/api/profile", async ([FromServices] ProfileService svc, HttpContex
     profile.Address = incoming.Address;
 
     await svc.UpsertAsync(profile);
-    return Results.Ok(profile);
+
+    // After upserting, fetch the profile again to get the database-generated ID
+    var updatedProfile = await svc.GetByUserIdAsync(userId);
+    
+    return Results.Ok(updatedProfile);
 });
 
 app.MapPost("/api/webhooks/clerk", async ([FromServices] ProfileService profileService, [FromBody] ClerkWebhookPayload payload) =>

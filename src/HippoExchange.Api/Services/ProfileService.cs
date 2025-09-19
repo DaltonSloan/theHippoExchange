@@ -24,7 +24,9 @@ public class ProfileService
     public async Task<PersonalProfile?> GetByUserIdAsync(string userId) =>
         await _profiles.Find(p => p.UserId == userId).FirstOrDefaultAsync();
 
-    public Task UpsertAsync(PersonalProfile profile) =>
-        _profiles.ReplaceOneAsync(p => p.UserId == profile.UserId, profile,
+    public async Task UpsertAsync(PersonalProfile profile)
+    {
+        await _profiles.ReplaceOneAsync(p => p.UserId == profile.UserId, profile,
             new ReplaceOptions { IsUpsert = true });
+    }
 }
