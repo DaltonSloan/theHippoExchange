@@ -8,6 +8,7 @@ public class PersonalProfile
 {
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
+    [BsonIgnoreIfDefault]
     public string? Id { get; set; }
     public string UserId { get; set; } = default!;
     public string FullName { get; set; } = "";
