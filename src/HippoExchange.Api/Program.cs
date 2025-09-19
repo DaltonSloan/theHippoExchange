@@ -7,6 +7,7 @@ using Cowsay;
 using Figgle;
 using Figgle.Fonts;
 using Google.Cloud.SecretManager.V1;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://*:8080");
@@ -14,17 +15,32 @@ builder.WebHost.UseUrls("http://*:8080");
 // If not in development, fetch the connection string from Google Secret Manager
 if (!builder.Environment.IsDevelopment())
 {
+    try
+    {
         const string projectId = "thehippoexchange-471003";
-    const string secretId = "MONGO_CONNECTION_STRING";
-    const string secretVersion = "latest";
+        const string secretId = "MONGO_CONNECTION_STRING";
+        const string secretVersion = "latest";
 
-    var client = SecretManagerServiceClient.Create();
-    var secretVersionName = new SecretVersionName(projectId, secretId, secretVersion);
-    var result = client.AccessSecretVersion(secretVersionName);
-    var connectionString = result.Payload.Data.ToStringUtf8();
+        var client = SecretManagerServiceClient.Create();
+        var secretVersionName = new SecretVersionName(projectId, secretId, secretVersion);
+        var result = client.AccessSecretVersion(secretVersionName);
+        var connectionString = result.Payload.Data.ToStringUtf8();
 
-    builder.Configuration["Mongo:ConnectionString"] = connectionString;
+        builder.Configuration["Mongo:ConnectionString"] = connectionString;
+    }
+    catch (Exception ex)
+    {
+        // Log the exception and rethrow it to ensure the application fails to start.
+        Console.WriteLine($"Error fetching secret from Google Secret Manager: {ex.Message}");
+        throw;
+    }
 }
+
+// Configure JSON options to handle camelCase from clients
+builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
+{
+    options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+});
 
 // Bind Mongo settings from env vars or appsettings
 builder.Services.Configure<MongoSettings>(builder.Configuration.GetSection("Mongo"));
