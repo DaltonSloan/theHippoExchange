@@ -14,7 +14,7 @@ builder.WebHost.UseUrls("http://*:8080");
 // If not in development, fetch the connection string from Google Secret Manager
 if (!builder.Environment.IsDevelopment())
 {
-    const string projectId = "337619689021";
+        const string projectId = "thehippoexchange-471003";
     const string secretId = "MONGO_CONNECTION_STRING";
     const string secretVersion = "latest";
 
