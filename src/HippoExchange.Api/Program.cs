@@ -8,9 +8,12 @@ using Figgle;
 using Figgle.Fonts;
 using Google.Cloud.SecretManager.V1;
 using System.Text.Json;
+using Swashbuckle.AspNetCore.Filters;
+using HippoExchange.Api.Examples;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://*:8080");
+
 
 // If not in development, fetch the connection string from Google Secret Manager
 if (!builder.Environment.IsDevelopment())
@@ -43,13 +46,16 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =
 });
 
 // Bind Mongo settings from env vars or appsettings
-builder.Services.Configure<MongoSettings>(builder.Configuration.GetSection("Mongo"));
+builder.Services.Configure<HippoExchange.Models.MongoSettings>(builder.Configuration.GetSection("Mongo"));
 builder.Services.AddSingleton<ProfileService>();
+builder.Services.AddSingleton<UserService>();
+builder.Services.AddSingleton<EmailService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "HippoExchange API", Version = "v1" });
+    c.ExampleFilters();
     c.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
     {
         Description = "Temporary User ID for authentication. Enter any string.",
@@ -68,7 +74,9 @@ builder.Services.AddSwaggerGen(c =>
             new string[] {}
         }
     });
+    c.OperationFilter<AppendAuthorizeToSummaryOperationFilter>();
 });
+builder.Services.AddSwaggerExamplesFromAssemblies(typeof(ClerkWebhookExample).Assembly);
 
 var app = builder.Build();
 
@@ -129,23 +137,38 @@ app.MapPost("/api/profile", async ([FromServices] ProfileService svc, HttpContex
     return Results.Ok(updatedProfile);
 });
 
-app.MapPost("/api/webhooks/clerk", async ([FromServices] ProfileService profileService, [FromBody] ClerkWebhookPayload payload) =>
+app.MapPost("/api/webhooks/clerk", [SwaggerRequestExample(typeof(ClerkWebhookPayload), typeof(ClerkWebhookExample))] async (
+    [FromServices] UserService userService, 
+    [FromServices] EmailService emailService, 
+    [FromBody] ClerkWebhookPayload payload) =>
 {
-    if (payload.Type == "user.created")
+    if (payload.Type == "user.created" || payload.Type == "user.updated")
     {
         var userData = payload.Data;
-        var newProfile = new PersonalProfile
+        var user = new User
         {
-            UserId = userData.Id,
-            FullName = $"{userData.FirstName} {userData.LastName}".Trim(),
-            // Email, Phone, and Address will be empty by default.
-            // The user can update them later via the /api/profile endpoint.
+            ClerkUserId = userData.Id,
+            Username = userData.Username,
+            FirstName = userData.FirstName ?? "",
+            LastName = userData.LastName ?? ""
         };
 
-        await profileService.UpsertAsync(newProfile);
+        await userService.UpsertUserAsync(user);
+
+        foreach (var emailData in userData.EmailAddresses)
+        {
+            var newEmail = new Email
+            {
+                ClerkUserId = userData.Id,
+                ClerkEmailId = emailData.Id,
+                EmailAddress = emailData.EmailAddress,
+                Reserved = emailData.Reserved
+            };
+            await emailService.UpsertEmailAsync(newEmail);
+        }
     }
 
     return Results.Ok();
-});
+});;
 
 app.Run();
