@@ -29,13 +29,13 @@ This project is set up to run in a containerized environment for easy developmen
 
 3.  **Reopen in Container**: When prompted, click on **"Reopen in Container"**. This will build the Docker container defined in the `.devcontainer/devcontainer.json` and `docker-compose.dev.yml` files.
 
-4. **Create a .env File**: Once the container is up and running, create a new file in the base directory called ".env" without quotes. Within the file, type the following and fill in with the parameters in the Back End Discord channel #databsae:
-```
-MONGO_USERNAME=
-MONGO_PASSWORD=
-MONGO_DB_NAME=
-MONGO_INITDB_DATABASE=
-```
+4. **Create a .env File**: Once the container is up and running, create a new file in the base directory called ".env" without quotes. Within the file, type the following and fill in with the parameters in the Back End Discord channel #database:
+    ```bash
+    MONGO_USERNAME=
+    MONGO_PASSWORD=
+    MONGO_DB_NAME=
+    MONGO_INITDB_DATABASE=
+    ```
 
 5.  **Run the application**: Once the container is up and running, open the integrated terminal in VS Code and run the following commands:
 
