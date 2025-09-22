@@ -19,11 +19,11 @@ namespace HippoExchange.Services
             await _usersCollection.InsertOneAsync(newUser);
 
         public async Task<User?> GetUserByClerkIdAsync(string clerkId) =>
-            await _usersCollection.Find(u => u.ClerkUserId == clerkId).FirstOrDefaultAsync();
+            await _usersCollection.Find(u => u.ClerkId == clerkId).FirstOrDefaultAsync();
 
         public async Task UpsertUserAsync(User user)
         {
-            var filter = Builders<User>.Filter.Eq(u => u.ClerkUserId, user.ClerkUserId);
+            var filter = Builders<User>.Filter.Eq(u => u.ClerkId, user.ClerkId);
             var options = new ReplaceOptions { IsUpsert = true };
             await _usersCollection.ReplaceOneAsync(filter, user, options);
         }

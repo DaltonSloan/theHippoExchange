@@ -138,28 +138,51 @@ app.MapPost("/api/profile", async ([FromServices] ProfileService svc, HttpContex
 });
 
 app.MapPost("/api/webhooks/clerk", [SwaggerRequestExample(typeof(ClerkWebhookPayload), typeof(ClerkWebhookExample))] async (
-    [FromServices] UserService userService, 
-    [FromServices] EmailService emailService, 
+    [FromServices] UserService userService,
+    [FromServices] EmailService emailService,
     [FromBody] ClerkWebhookPayload payload) =>
 {
     if (payload.Type == "user.created" || payload.Type == "user.updated")
     {
-        var userData = payload.Data;
+        var clerkUser = payload.Data;
+        var primaryEmail = clerkUser.EmailAddresses.FirstOrDefault(e => e.Id == clerkUser.PrimaryEmailAddressId);
+
+        if (primaryEmail == null)
+        {
+            // Or handle this error as you see fit
+            return Results.BadRequest("Primary email not found for user.");
+        }
+
         var user = new User
         {
-            ClerkUserId = userData.Id,
-            Username = userData.Username,
-            FirstName = userData.FirstName ?? "",
-            LastName = userData.LastName ?? ""
+            ClerkId = clerkUser.Id,
+            Email = primaryEmail.EmailAddress,
+            Username = clerkUser.Username,
+            FirstName = clerkUser.FirstName,
+            LastName = clerkUser.LastName,
+            FullName = $"{clerkUser.FirstName} {clerkUser.LastName}".Trim(),
+            ProfileImageUrl = clerkUser.ImageUrl,
+            ContactInformation = new ContactInformation
+            {
+                Email = primaryEmail.EmailAddress
+            },
+            AccountStatus = new AccountStatus
+            {
+                EmailVerified = primaryEmail.Verification?.Status == "verified",
+                Banned = clerkUser.Banned,
+                Locked = false // Assuming 'locked' is not a direct field from Clerk and defaulting it
+            },
+            Statistics = new Statistics() // All stats default to 0
         };
 
         await userService.UpsertUserAsync(user);
 
-        foreach (var emailData in userData.EmailAddresses)
+        // You can still keep the email service logic if you need a separate 'emails' collection
+        foreach (var emailData in clerkUser.EmailAddresses)
         {
             var newEmail = new Email
             {
-                ClerkUserId = userData.Id,
+                ClerkUserId = clerkUser.Id,
                 ClerkEmailId = emailData.Id,
                 EmailAddress = emailData.EmailAddress,
                 Reserved = emailData.Reserved
@@ -169,6 +192,6 @@ app.MapPost("/api/webhooks/clerk", [SwaggerRequestExample(typeof(ClerkWebhookPay
     }
 
     return Results.Ok();
-});;
+});
 
 app.Run();
