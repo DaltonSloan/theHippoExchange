@@ -1,6 +1,5 @@
 services:
   api-dev:
-    profiles: ["dev"]
     build:
       context: ./src/HippoExchange.Api
       dockerfile: Dockerfile.dev
@@ -10,7 +9,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:80
       Mongo__ConnectionString: "mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb:27017/?authSource=admin"
-      Mongo__Database: "${MONGO_DB_NAME}"
+      Mongo__DatabaseName: "${MONGO_DB_NAME}"
     volumes:
       - .:/workspace
     ports:
@@ -20,7 +19,6 @@ services:
     restart: unless-stopped
 
   mongodb:
-    profiles: ["dev"]
     image: mongo:7
     command: ["--auth"]
     environment:
@@ -35,7 +33,6 @@ services:
     restart: unless-stopped
 
   mongo-express:
-    profiles: ["dev"]
     image: mongo-express:1
     depends_on:
       - mongodb
