@@ -50,7 +50,7 @@ builder.Services.Configure<HippoExchange.Models.MongoSettings>(builder.Configura
 builder.Services.AddSingleton<ProfileService>();
 builder.Services.AddSingleton<UserService>();
 builder.Services.AddSingleton<EmailService>();
-builder.Services.AddSingleton<AssetService>();
+builder.Services.AddSingleton<AssetService>(); 
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -155,6 +155,15 @@ app.MapGet("/api/assets", async ([FromServices] AssetService assetService, HttpC
 {
     var userId = GetUserId(ctx);
     if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
+
+    var assets = await assetService.GetAssetsByOwnerIdAsync(userId);
+    return Results.Ok(assets);
+});
+
+// GET /api/users/{userId}/assets - Get all assets for a specific user
+app.MapGet("/api/users/{userId}/assets", async ([FromServices] AssetService assetService, string userId) =>
+{
+    if (string.IsNullOrWhiteSpace(userId)) return Results.BadRequest("User ID cannot be empty.");
 
     var assets = await assetService.GetAssetsByOwnerIdAsync(userId);
     return Results.Ok(assets);
