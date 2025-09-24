@@ -15,7 +15,6 @@ services:
       - mongodb
 
   mongodb:
-    profiles: ["prod"]
     image: mongo:7
     command: ["--auth"]
     environment:
