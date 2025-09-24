@@ -50,6 +50,7 @@ builder.Services.Configure<HippoExchange.Models.MongoSettings>(builder.Configura
 builder.Services.AddSingleton<ProfileService>();
 builder.Services.AddSingleton<UserService>();
 builder.Services.AddSingleton<EmailService>();
+builder.Services.AddSingleton<AssetService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -136,6 +137,29 @@ app.MapPost("/api/profile", async ([FromServices] ProfileService svc, HttpContex
     
     return Results.Ok(updatedProfile);
 });
+
+// POST /api/assets - Add a new asset
+app.MapPost("/api/assets", async ([FromServices] AssetService assetService, HttpContext ctx, [FromBody] Asset newAsset) =>
+{
+    var userId = GetUserId(ctx);
+    if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
+
+    newAsset.OwnerUserId = userId;
+    var createdAsset = await assetService.CreateAssetAsync(newAsset);
+
+    return Results.Created($"/api/assets/{createdAsset.Id}", createdAsset);
+});
+
+// GET /api/assets - Get all assets for the current user
+app.MapGet("/api/assets", async ([FromServices] AssetService assetService, HttpContext ctx) =>
+{
+    var userId = GetUserId(ctx);
+    if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
+
+    var assets = await assetService.GetAssetsByOwnerIdAsync(userId);
+    return Results.Ok(assets);
+});
+
 
 app.MapPost("/api/webhooks/clerk", [SwaggerRequestExample(typeof(ClerkWebhookPayload), typeof(ClerkWebhookExample))] async (
     [FromServices] UserService userService,
