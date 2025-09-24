@@ -10,4 +10,4 @@ RUN useradd -ms /bin/bash dev && chown -R dev:dev /workspace
 RUN echo 'dev ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 USER dev
 
-# Default: you run `dotnet run` from VS Code terminal
+CMD ["tail", "-f", "/dev/null"]
