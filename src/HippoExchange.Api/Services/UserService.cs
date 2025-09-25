@@ -41,5 +41,10 @@ namespace HippoExchange.Services
             var options = new ReplaceOptions { IsUpsert = true };
             await _usersCollection.ReplaceOneAsync(filter, user, options);
         }
+
+        public async Task<List<User>> GetAllUsersAsync()
+        {
+            return await _usersCollection.Find(_ => true).ToListAsync();
+        }
     }
 }

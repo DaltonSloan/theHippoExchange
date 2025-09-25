@@ -13,6 +13,18 @@ using Figgle.Fonts;
 using Cowsay;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        builder =>
+        {
+            builder.AllowAnyOrigin()
+                   .AllowAnyHeader()
+                   .AllowAnyMethod();
+        });
+});
+
 builder.WebHost.UseUrls("http://*:8080");
 
 
@@ -95,6 +107,8 @@ FiggleFont font = FiggleFonts.Bulbhead;
 
 var staticCow = await DefaultCattleFarmer.RearCowWithDefaults("default");
 app.MapGet("/join", () => Results.Text(font.Render("Welcome to the bloat!")));
+
+app.UseCors();
 
 app.UseSwagger();
 app.UseSwaggerUI();
@@ -193,6 +207,12 @@ app.MapPost("/api/webhooks/clerk", [SwaggerRequestExample(typeof(ClerkWebhookPay
     }
 
     return Results.BadRequest("Unhandled webhook type");
+});
+
+app.MapGet("/api/users", async ([FromServices] UserService userService) =>
+{
+    var users = await userService.GetAllUsersAsync();
+    return Results.Ok(users);
 });
 
 app.Run();
