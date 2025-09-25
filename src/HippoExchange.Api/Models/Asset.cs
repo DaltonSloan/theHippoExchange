@@ -13,6 +13,7 @@ namespace HippoExchange.Models
         public string? Id { get; set; }
 
         public string ItemName { get; set; } = string.Empty;
+        public string BrandName { get; set; } = string.Empty;
         public string Category { get; set; } = string.Empty;
         public DateTime PurchaseDate { get; set; }
         public decimal PurchaseCost { get; set; }
