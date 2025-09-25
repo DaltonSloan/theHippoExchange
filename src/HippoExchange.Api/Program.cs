@@ -51,7 +51,7 @@ builder.Services.AddSingleton<ProfileService>();
 builder.Services.AddSingleton<UserService>();
 builder.Services.AddSingleton<EmailService>();
 builder.Services.AddSingleton<AssetService>();
-//builder.Services.AddSingleton<EditAssetService>(); 
+builder.Services.AddSingleton<EditAssetService>(); 
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -171,7 +171,6 @@ app.MapGet("/api/users/{userId}/assets", async ([FromServices] AssetService asse
 });
 
 // PUT /api/assets/{assetId} - Replace (update) an asset
-/*
 app.MapPut("/api/assets/{assetId}", async ([FromServices] EditAssetService editAssetService, string assetId, Asset updatedAsset) =>
 {
     if (string.IsNullOrWhiteSpace(assetId))
@@ -182,14 +181,14 @@ app.MapPut("/api/assets/{assetId}", async ([FromServices] EditAssetService editA
     if (existing is null)
         return Results.NotFound($"Asset with ID {assetId} not found.");
 
-    var success = await editAssetService.GetAssetByIdAsync(assetId, updatedAsset);
+    var success = await editAssetService.ReplaceAssetAsync(assetId, updatedAsset);
     if (!success)
         return Results.Problem("Failed to update asset.");
 
     //retun the updated asset
     return Results.Ok(updatedAsset);
 });
-*/
+
 
 
 app.MapPost("/api/webhooks/clerk", [SwaggerRequestExample(typeof(ClerkWebhookPayload), typeof(ClerkWebhookExample))] async (

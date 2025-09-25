@@ -23,7 +23,7 @@ namespace HippoExchange.Services
         public async Task<bool> ReplaceAssetAsync(string assetId, Asset updatedAsset)
         {
             updatedAsset.Id = assetId;
-            var result = await _assetsCollection.ReplaceOneAsync(assetId => assetId.Id == assetId, updatedAsset);
+            var result = await _assetsCollection.ReplaceOneAsync(a => a.Id == assetId, updatedAsset);
             return result.ModifiedCount > 0;
         }
     }
