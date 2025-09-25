@@ -14,5 +14,6 @@ namespace HippoExchange.Models
         public string ClerkEmailId { get; set; } = default!;
         public string EmailAddress { get; set; } = default!;
         public bool Reserved { get; set; }
+        public bool Verified { get; set; }
     }
 }

@@ -1,13 +1,16 @@
 using HippoExchange.Models;
-using HippoExchange.Models.Clerk;
 using HippoExchange.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
-using Cowsay;
+using Swashbuckle.AspNetCore.Filters;
+using HippoExchange.Api.Examples;
+using HippoExchange.Models.Clerk;
+using System.Text.Json;
+using Google.Cloud.SecretManager.V1;
+using Microsoft.Extensions.Options;
 using Figgle;
 using Figgle.Fonts;
-using Google.Cloud.SecretManager.V1;
-using System.Text.Json;
+using Cowsay;
 using Swashbuckle.AspNetCore.Filters;
 using HippoExchange.Api.Examples;
 
@@ -178,53 +181,20 @@ app.MapPost("/api/webhooks/clerk", [SwaggerRequestExample(typeof(ClerkWebhookPay
     if (payload.Type == "user.created" || payload.Type == "user.updated")
     {
         var clerkUser = payload.Data;
-        var primaryEmail = clerkUser.EmailAddresses.FirstOrDefault(e => e.Id == clerkUser.PrimaryEmailAddressId);
+        await userService.UpsertUserAsync(clerkUser);
 
-        if (primaryEmail == null)
+        if (clerkUser.EmailAddresses is not null)
         {
-            // Or handle this error as you see fit
-            return Results.BadRequest("Primary email not found for user.");
+            foreach (var emailData in clerkUser.EmailAddresses)
+            {
+                await emailService.UpsertEmailAsync(emailData);
+            }
         }
 
-        var user = new User
-        {
-            ClerkId = clerkUser.Id,
-            Email = primaryEmail.EmailAddress,
-            Username = clerkUser.Username,
-            FirstName = clerkUser.FirstName,
-            LastName = clerkUser.LastName,
-            FullName = $"{clerkUser.FirstName} {clerkUser.LastName}".Trim(),
-            ProfileImageUrl = clerkUser.ImageUrl,
-            ContactInformation = new ContactInformation
-            {
-                Email = primaryEmail.EmailAddress
-            },
-            AccountStatus = new AccountStatus
-            {
-                EmailVerified = primaryEmail.Verification?.Status == "verified",
-                Banned = clerkUser.Banned,
-                Locked = false // Assuming 'locked' is not a direct field from Clerk and defaulting it
-            },
-            Statistics = new Statistics() // All stats default to 0
-        };
-
-        await userService.UpsertUserAsync(user);
-
-        // You can still keep the email service logic if you need a separate 'emails' collection
-        foreach (var emailData in clerkUser.EmailAddresses)
-        {
-            var newEmail = new Email
-            {
-                ClerkUserId = clerkUser.Id,
-                ClerkEmailId = emailData.Id,
-                EmailAddress = emailData.EmailAddress,
-                Reserved = emailData.Reserved
-            };
-            await emailService.UpsertEmailAsync(newEmail);
-        }
+        return Results.Ok(new { message = "Webhook processed successfully" });
     }
 
-    return Results.Ok();
+    return Results.BadRequest("Unhandled webhook type");
 });
 
 app.Run();

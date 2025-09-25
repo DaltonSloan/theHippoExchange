@@ -1,4 +1,5 @@
 using HippoExchange.Models;
+using HippoExchange.Models.Clerk;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
@@ -21,8 +22,21 @@ namespace HippoExchange.Services
         public async Task<User?> GetUserByClerkIdAsync(string clerkId) =>
             await _usersCollection.Find(u => u.ClerkId == clerkId).FirstOrDefaultAsync();
 
-        public async Task UpsertUserAsync(User user)
+        public async Task UpsertUserAsync(ClerkUserData clerkUser)
         {
+            var user = new User
+            {
+                ClerkId = clerkUser.Id,
+                Username = clerkUser.Username,
+                FirstName = clerkUser.FirstName,
+                LastName = clerkUser.LastName,
+                ImageUrl = clerkUser.ImageUrl,
+                HasImage = clerkUser.HasImage,
+                PrimaryEmailAddressId = clerkUser.PrimaryEmailAddressId,
+                LastSignInAt = clerkUser.LastSignInAt,
+                UpdatedAt = clerkUser.UpdatedAt
+            };
+
             var filter = Builders<User>.Filter.Eq(u => u.ClerkId, user.ClerkId);
             var options = new ReplaceOptions { IsUpsert = true };
             await _usersCollection.ReplaceOneAsync(filter, user, options);

@@ -44,6 +44,21 @@ namespace HippoExchange.Models
 
         [JsonPropertyName("statistics")]
         public Statistics Statistics { get; set; } = new();
+
+        [JsonPropertyName("image_url")]
+        public string? ImageUrl { get; set; }
+
+        [JsonPropertyName("has_image")]
+        public bool HasImage { get; set; }
+
+        [JsonPropertyName("primary_email_address_id")]
+        public string? PrimaryEmailAddressId { get; set; }
+
+        [JsonPropertyName("last_sign_in_at")]
+        public long? LastSignInAt { get; set; }
+
+        [JsonPropertyName("updated_at")]
+        public long UpdatedAt { get; set; }
     }
 
     public class ContactInformation

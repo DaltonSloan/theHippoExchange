@@ -1,4 +1,5 @@
 using HippoExchange.Models;
+using HippoExchange.Models.Clerk;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
@@ -20,8 +21,15 @@ namespace HippoExchange.Services
             await _emails.InsertOneAsync(email);
         }
 
-        public async Task UpsertEmailAsync(Email email)
+        public async Task UpsertEmailAsync(ClerkEmailAddress clerkEmail)
         {
+            var email = new Email
+            {
+                ClerkEmailId = clerkEmail.Id,
+                EmailAddress = clerkEmail.EmailAddress,
+                Verified = clerkEmail.Verification?.Status == "verified"
+            };
+
             var filter = Builders<Email>.Filter.Eq(e => e.ClerkEmailId, email.ClerkEmailId);
             var options = new ReplaceOptions { IsUpsert = true };
             await _emails.ReplaceOneAsync(filter, email, options);
