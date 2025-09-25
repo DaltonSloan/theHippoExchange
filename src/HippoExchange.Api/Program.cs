@@ -215,4 +215,19 @@ app.MapGet("/api/users", async ([FromServices] UserService userService) =>
     return Results.Ok(users);
 });
 
+app.MapGet("/api/user", async ([FromServices] UserService userService, HttpContext ctx) =>
+{
+    var userId = GetUserId(ctx);
+    if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
+
+    var user = await userService.GetByClerkIdAsync(userId);
+
+    if (user == null)
+    {
+        return Results.NotFound(new { message = "User not found" });
+    }
+
+    return Results.Ok(user);
+});
+
 app.Run();

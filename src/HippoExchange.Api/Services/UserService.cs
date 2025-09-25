@@ -46,5 +46,10 @@ namespace HippoExchange.Services
         {
             return await _usersCollection.Find(_ => true).ToListAsync();
         }
+
+        public async Task<User?> GetByClerkIdAsync(string clerkId)
+        {
+            return await _usersCollection.Find(u => u.ClerkId == clerkId).FirstOrDefaultAsync();
+        }
     }
 }
