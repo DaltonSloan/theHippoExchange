@@ -1,34 +1,42 @@
 {
   "name": "HippoExchange Dev",
-  "dockerComposeFile": [
-    "../docker-compose.yml",
-    "../docker-compose.dev.yml"
-  ],
+  "dockerComposeFile": "../docker-compose.dev.yml",
   "service": "api-dev",
   "workspaceFolder": "/workspace",
-  "features": {},
+  
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+  
   "customizations": {
     "vscode": {
       "extensions": [
         "ms-dotnettools.csharp",
+        "ms-dotnettools.vscode-dotnet-runtime",
         "ms-azuretools.vscode-docker",
         "ms-vscode.vscode-typescript-next",
-        "humao.rest-client"
-      ]
+        "humao.rest-client",
+        "mongodb.mongodb-vscode",
+        "esbenp.prettier-vscode"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
     }
   },
-  "postCreateCommand": "dotnet restore \"theHippoExchange.sln\"",
-  "forwardPorts": [8080, 8081],
+  
+  "postCreateCommand": "dotnet restore",
+  
+  "forwardPorts": [80, 8082, 27017, 8081],
   "portsAttributes": {
-    "443": { "label": "HTTPS" },
-    "80":  { "label": "HTTP" },
-    "27017": { "label": "Mongo" },
-    "8081": { "label": "Mongo Express" },
-    "8082": { "label": "HTTP (host)" },
-    "8445": { "label": "HTTPS (host)" }
+    "80": { "label": "API (container)", "onAutoForward": "notify" },
+    "8082": { "label": "API (host)", "onAutoForward": "notify" },
+    "27017": { "label": "MongoDB", "onAutoForward": "silent" },
+    "8081": { "label": "Mongo Express", "onAutoForward": "notify" }
   },
+  
   "runServices": ["api-dev", "mongodb", "mongo-express"],
-  "overrideCommand": true,
-  "containerUser": "dev",
+  "overrideCommand": false,
+  "remoteUser": "root",
   "shutdownAction": "none"
 }

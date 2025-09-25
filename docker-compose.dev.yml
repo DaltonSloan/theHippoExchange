@@ -21,6 +21,11 @@ services:
   mongodb:
     image: mongo:7
     command: ["--auth"]
+    networks:
+      default:
+        aliases:
+          - mongo
+          - db
     environment:
       MONGO_INITDB_ROOT_USERNAME: "${MONGO_USERNAME}"
       MONGO_INITDB_ROOT_PASSWORD: "${MONGO_PASSWORD}"
