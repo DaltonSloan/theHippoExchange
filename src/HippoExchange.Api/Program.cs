@@ -11,8 +11,6 @@ using Microsoft.Extensions.Options;
 using Figgle;
 using Figgle.Fonts;
 using Cowsay;
-using Swashbuckle.AspNetCore.Filters;
-using HippoExchange.Api.Examples;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://*:8080");
