@@ -194,4 +194,28 @@ app.MapPost("/api/webhooks/clerk", [SwaggerRequestExample(typeof(ClerkWebhookPay
     return Results.Ok();
 });
 
+// PUT /api/emails/{clerkEmailId} - Update an email address
+app.MapPut("/api/emails/{clerkEmailId}", async (//defines the put endpoint using the url endpoint
+    [FromServices] EmailService emailService, //tells asp.net core to inject the EmailService method defined earlier
+    string clerkEmailId,//the string gotten from the url
+    [FromBody] string newAddress) =>//this will be the new email given to replace the old one
+{
+    if (string.IsNullOrWhiteSpace(clerkEmailId))//checks if the email given was in database
+        return Results.BadRequest("ClerkEmailId cannot be empty.");
+
+    if (string.IsNullOrWhiteSpace(newAddress))//checks if the given new email is valid
+        return Results.BadRequest("New address cannot be empty.");
+
+    try
+    {
+        await emailService.UpdateEmailAddress(clerkEmailId, newAddress);//calls the update email method in EmailService.cs
+        return Results.Ok(new { message = "Email updated successfully" });//returns ok if worked
+    }
+    catch (Exception ex)
+    {
+        return Results.NotFound(new { error = ex.Message });//if bad request return error message
+    }
+});
+     
+
 app.Run();
