@@ -1,6 +1,8 @@
 using HippoExchange.Models;
 using HippoExchange.Services;
-using Microsoft.AspNetCore.Mvc;
+usinbuilder.Services.AddSingleton<UserService>();
+builder.Services.AddSingleton<EmailService>();
+builder.Services.AddSingleton<AssetService>(); crosoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using HippoExchange.Api.Examples;
@@ -122,37 +124,6 @@ if (!app.Environment.IsDevelopment())
 // TEMP auth placeholder until Clerk: header "X-User-Id"
 string? GetUserId(HttpContext ctx) =>
     ctx.Request.Headers.TryGetValue("X-User-Id", out var v) ? v.ToString() : null;
-
-// GET current user's profile
-app.MapGet("/api/profile", async ([FromServices] ProfileService svc, HttpContext ctx) =>
-{
-    var userId = GetUserId(ctx);
-    if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
-
-    var profile = await svc.GetByUserIdAsync(userId);
-    return Results.Ok(profile ?? new PersonalProfile { UserId = userId });
-});
-
-// POST create/update profile
-app.MapPost("/api/profile", async ([FromServices] ProfileService svc, HttpContext ctx, [FromBody] UpdateProfileRequest incoming) =>
-{
-    var userId = GetUserId(ctx);
-    if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
-
-    var profile = await svc.GetByUserIdAsync(userId) ?? new PersonalProfile { UserId = userId };
-
-    profile.FullName = incoming.FullName;
-    profile.Email = incoming.Email;
-    profile.Phone = incoming.Phone;
-    profile.Address = incoming.Address;
-
-    await svc.UpsertAsync(profile);
-
-    // After upserting, fetch the profile again to get the database-generated ID
-    var updatedProfile = await svc.GetByUserIdAsync(userId);
-    
-    return Results.Ok(updatedProfile);
-});
 
 // POST /api/assets - Add a new asset
 app.MapPost("/api/assets", async ([FromServices] AssetService assetService, HttpContext ctx, [FromBody] Asset newAsset) =>
