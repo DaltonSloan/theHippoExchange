@@ -1,9 +1,7 @@
 using HippoExchange.Models;
 using HippoExchange.Services;
-usinbuilder.Services.AddSingleton<UserService>();
-builder.Services.AddSingleton<EmailService>();
-builder.Services.AddSingleton<AssetService>(); crosoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Filters;
 using HippoExchange.Api.Examples;
 using HippoExchange.Models.Clerk;
@@ -61,8 +59,7 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =
 });
 
 // Bind Mongo settings from env vars or appsettings
-builder.Services.Configure<HippoExchange.Models.MongoSettings>(builder.Configuration.GetSection("Mongo"));
-builder.Services.AddSingleton<ProfileService>();
+builder.Services.Configure<MongoSettings>(builder.Configuration.GetSection("Mongo"));
 builder.Services.AddSingleton<UserService>();
 builder.Services.AddSingleton<EmailService>();
 builder.Services.AddSingleton<AssetService>();
