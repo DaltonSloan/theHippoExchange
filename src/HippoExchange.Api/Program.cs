@@ -174,41 +174,88 @@ app.MapPut("/api/assets/{assetId}", async ([FromServices] EditAssetService editA
 
 
 
-app.MapPost("/api/webhooks/clerk", [SwaggerRequestExample(typeof(ClerkWebhookPayload), typeof(ClerkWebhookExample))] async (
+app.MapPost("/users", [SwaggerRequestExample(typeof(ClerkWebhookPayload), typeof(ClerkWebhookExample))] async (
     [FromServices] UserService userService,
     [FromServices] EmailService emailService,
     [FromBody] ClerkWebhookPayload payload) =>
 {
-    if (payload.Type == "user.created" || payload.Type == "user.updated")
+    if (payload.Type != "user.created")
     {
-        var clerkUser = payload.Data;
-        await userService.UpsertUserAsync(clerkUser);
-
-        if (clerkUser.EmailAddresses is not null)
-        {
-            foreach (var emailData in clerkUser.EmailAddresses)
-            {
-                await emailService.UpsertEmailAsync(emailData);
-            }
-        }
-
-        return Results.Ok(new { message = "Webhook processed successfully" });
+        return Results.BadRequest(new { message = "This endpoint only handles user.created events." });
     }
 
-    return Results.BadRequest("Unhandled webhook type");
+    var clerkUser = payload.Data;
+    await userService.UpsertUserAsync(clerkUser);
+
+    if (clerkUser.EmailAddresses is not null)
+    {
+        foreach (var emailData in clerkUser.EmailAddresses)
+        {
+            await emailService.UpsertEmailAsync(emailData);
+        }
+    }
+
+    return Results.Created($"/users/{clerkUser.Id}", new { message = "User created successfully" });
 });
 
-app.MapGet("/api/users", async ([FromServices] UserService userService) =>
+app.MapPut("/users/{userId}", [SwaggerRequestExample(typeof(ClerkWebhookPayload), typeof(ClerkWebhookExample))] async (
+    string userId,
+    [FromServices] UserService userService,
+    [FromServices] EmailService emailService,
+    [FromBody] ClerkWebhookPayload payload) =>
+{
+    if (payload.Type != "user.updated")
+    {
+        return Results.BadRequest(new { message = "This endpoint only handles user.updated events." });
+    }
+
+    var clerkUser = payload.Data;
+    if (userId != clerkUser.Id)
+    {
+        return Results.BadRequest(new { message = "User ID in URL does not match payload." });
+    }
+    
+    await userService.UpsertUserAsync(clerkUser);
+
+    if (clerkUser.EmailAddresses is not null)
+    {
+        foreach (var emailData in clerkUser.EmailAddresses)
+        {
+            await emailService.UpsertEmailAsync(emailData);
+        }
+    }
+
+    return Results.Ok(new { message = "User updated successfully" });
+});
+
+app.MapDelete("/users/{userId}", [SwaggerRequestExample(typeof(ClerkWebhookPayload), typeof(ClerkWebhookExample))] async (
+    string userId,
+    [FromServices] UserService userService,
+    [FromBody] ClerkWebhookPayload payload) =>
+{
+    if (payload.Type != "user.deleted")
+    {
+        return Results.BadRequest(new { message = "This endpoint only handles user.deleted events." });
+    }
+    
+    var clerkUser = payload.Data;
+    if (userId != clerkUser.Id)
+    {
+        return Results.BadRequest(new { message = "User ID in URL does not match payload." });
+    }
+
+    await userService.DeleteUserAsync(clerkUser.Id);
+    return Results.Ok(new { message = "User deleted successfully" });
+});
+
+app.MapGet("/users", async ([FromServices] UserService userService) =>
 {
     var users = await userService.GetAllUsersAsync();
     return Results.Ok(users);
 });
 
-app.MapGet("/api/user", async ([FromServices] UserService userService, HttpContext ctx) =>
+app.MapGet("/users/{userId}", async ([FromServices] UserService userService, string userId) =>
 {
-    var userId = GetUserId(ctx);
-    if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
-
     var user = await userService.GetByClerkIdAsync(userId);
 
     if (user == null)
@@ -218,5 +265,13 @@ app.MapGet("/api/user", async ([FromServices] UserService userService, HttpConte
 
     return Results.Ok(user);
 });
+
+// This is the old DELETE endpoint, which is now replaced by the webhook-based one above.
+// I'm removing it to avoid confusion.
+// app.MapDelete("/users/{userId}", async ([FromServices] UserService userService, string userId) =>
+// {
+//     await userService.DeleteUserAsync(userId);
+//     return Results.NoContent();
+// });
 
 app.Run();

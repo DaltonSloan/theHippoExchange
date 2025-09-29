@@ -42,14 +42,13 @@ namespace HippoExchange.Services
             await _usersCollection.ReplaceOneAsync(filter, user, options);
         }
 
-        public async Task<List<User>> GetAllUsersAsync()
-        {
-            return await _usersCollection.Find(_ => true).ToListAsync();
-        }
+        public async Task<List<User>> GetAllUsersAsync() =>
+            await _usersCollection.Find(_ => true).ToListAsync();
 
-        public async Task<User?> GetByClerkIdAsync(string clerkId)
-        {
-            return await _usersCollection.Find(u => u.ClerkId == clerkId).FirstOrDefaultAsync();
-        }
+        public async Task<User> GetByClerkIdAsync(string clerkId) =>
+            await _usersCollection.Find(u => u.ClerkId == clerkId).FirstOrDefaultAsync();
+
+        public async Task DeleteUserAsync(string clerkId) =>
+            await _usersCollection.DeleteOneAsync(u => u.ClerkId == clerkId);
     }
 }
