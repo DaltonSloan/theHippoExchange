@@ -1,6 +1,8 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.Text.Json.Serialization;
+using HippoExchange.Models.Clerk;
+using System.Collections.Generic;
 
 namespace HippoExchange.Models
 {
@@ -44,6 +46,30 @@ namespace HippoExchange.Models
 
         [JsonPropertyName("statistics")]
         public Statistics Statistics { get; set; } = new();
+
+        [JsonPropertyName("image_url")]
+        public string? ImageUrl { get; set; }
+
+        [JsonPropertyName("has_image")]
+        public bool HasImage { get; set; }
+
+        [JsonPropertyName("primary_email_address_id")]
+        public string? PrimaryEmailAddressId { get; set; }
+
+        [JsonPropertyName("last_sign_in_at")]
+        public long? LastSignInAt { get; set; }
+
+        [JsonPropertyName("updated_at")]
+        public long UpdatedAt { get; set; }
+
+        [JsonPropertyName("phone_number")]
+        public string? PhoneNumber { get; set; }
+
+        [JsonPropertyName("address")]
+        public Address? Address { get; set; }
+
+        [JsonPropertyName("email_addresses")]
+        public List<ClerkEmailAddress>? EmailAddresses { get; set; }
     }
 
     public class ContactInformation

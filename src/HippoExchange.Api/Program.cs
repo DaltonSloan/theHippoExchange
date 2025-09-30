@@ -1,17 +1,30 @@
 using HippoExchange.Models;
-using HippoExchange.Models.Clerk;
 using HippoExchange.Services;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
-using Cowsay;
-using Figgle;
-using Figgle.Fonts;
-using Google.Cloud.SecretManager.V1;
-using System.Text.Json;
+using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Filters;
 using HippoExchange.Api.Examples;
+using HippoExchange.Models.Clerk;
+using System.Text.Json;
+using Google.Cloud.SecretManager.V1;
+using Microsoft.Extensions.Options;
+using Figgle;
+using Figgle.Fonts;
+using Cowsay;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        builder =>
+        {
+            builder.AllowAnyOrigin()
+                   .AllowAnyHeader()
+                   .AllowAnyMethod();
+        });
+});
+
 builder.WebHost.UseUrls("http://*:8080");
 
 
@@ -46,10 +59,9 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =
 });
 
 // Bind Mongo settings from env vars or appsettings
-builder.Services.Configure<HippoExchange.Models.MongoSettings>(builder.Configuration.GetSection("Mongo"));
-builder.Services.AddSingleton<ProfileService>();
+builder.Services.Configure<MongoSettings>(builder.Configuration.GetSection("Mongo"));
 builder.Services.AddSingleton<UserService>();
-builder.Services.AddSingleton<EmailService>();
+builder.Services.AddSingleton<AssetService>(); 
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -94,6 +106,8 @@ FiggleFont font = FiggleFonts.Bulbhead;
 var staticCow = await DefaultCattleFarmer.RearCowWithDefaults("default");
 app.MapGet("/join", () => Results.Text(font.Render("Welcome to the bloat!")));
 
+app.UseCors();
+
 app.UseSwagger();
 app.UseSwaggerUI();
 
@@ -106,93 +120,124 @@ if (!app.Environment.IsDevelopment())
 string? GetUserId(HttpContext ctx) =>
     ctx.Request.Headers.TryGetValue("X-User-Id", out var v) ? v.ToString() : null;
 
-// GET current user's profile
-app.MapGet("/api/profile", async ([FromServices] ProfileService svc, HttpContext ctx) =>
+// POST /api/assets - Add a new asset
+app.MapPost("/api/assets", async ([FromServices] AssetService assetService, HttpContext ctx, [FromBody] Asset newAsset) =>
 {
     var userId = GetUserId(ctx);
     if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
 
-    var profile = await svc.GetByUserIdAsync(userId);
-    return Results.Ok(profile ?? new PersonalProfile { UserId = userId });
+    newAsset.OwnerUserId = userId;
+    var createdAsset = await assetService.CreateAssetAsync(newAsset);
+
+    return Results.Created($"/api/assets/{createdAsset.Id}", createdAsset);
 });
 
-// POST create/update profile
-app.MapPost("/api/profile", async ([FromServices] ProfileService svc, HttpContext ctx, [FromBody] UpdateProfileRequest incoming) =>
+// GET /api/assets - Get all assets for the current user
+app.MapGet("/api/assets", async ([FromServices] AssetService assetService, HttpContext ctx) =>
 {
     var userId = GetUserId(ctx);
     if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
 
-    var profile = await svc.GetByUserIdAsync(userId) ?? new PersonalProfile { UserId = userId };
-
-    profile.FullName = incoming.FullName;
-    profile.Email = incoming.Email;
-    profile.Phone = incoming.Phone;
-    profile.Address = incoming.Address;
-
-    await svc.UpsertAsync(profile);
-
-    // After upserting, fetch the profile again to get the database-generated ID
-    var updatedProfile = await svc.GetByUserIdAsync(userId);
-    
-    return Results.Ok(updatedProfile);
+    var assets = await assetService.GetAssetsByOwnerIdAsync(userId);
+    return Results.Ok(assets);
 });
+
+// GET /api/users/{userId}/assets - Get all assets for a specific user
+app.MapGet("/api/users/{userId}/assets", async ([FromServices] AssetService assetService, string userId) =>
+{
+    if (string.IsNullOrWhiteSpace(userId)) return Results.BadRequest("User ID cannot be empty.");
+
+    var assets = await assetService.GetAssetsByOwnerIdAsync(userId);
+    return Results.Ok(assets);
+});
+
+app.MapPatch("/users/{userId}", async ([FromServices] UserService userService, HttpContext ctx, string userId, [FromBody] ProfileUpdateRequest updateRequest) =>
+{
+    var authenticatedUserId = GetUserId(ctx);
+    if (string.IsNullOrWhiteSpace(authenticatedUserId) || authenticatedUserId != userId)
+    {
+        return Results.Unauthorized();
+    }
+
+    var success = await userService.UpdateUserProfileAsync(userId, updateRequest);
+    if (!success)
+    {
+        return Results.NotFound(new { message = "User not found or profile not updated." });
+    }
+
+    return Results.Ok(new { message = "Profile updated successfully." });
+});
+
+// PUT /api/assets/{assetId} - Replace (update) an asset
+app.MapPut("/api/assets/{assetId}", async ([FromServices] AssetService assetService, string assetId, Asset updatedAsset) =>
+{
+    if (string.IsNullOrWhiteSpace(assetId))
+        return Results.BadRequest("Asset ID cannot be empty.");
+
+    //Ensure the asset actually exists before replacing
+    var existing = await assetService.GetAssetByIdAsync(assetId);
+    if (existing is null)
+        return Results.NotFound($"Asset with ID {assetId} not found.");
+
+    var success = await assetService.ReplaceAssetAsync(assetId, updatedAsset);
+    if (!success)
+        return Results.Problem("Failed to update asset.");
+
+    //retun the updated asset
+    return Results.Ok(updatedAsset);
+});
+
+
 
 app.MapPost("/api/webhooks/clerk", [SwaggerRequestExample(typeof(ClerkWebhookPayload), typeof(ClerkWebhookExample))] async (
     [FromServices] UserService userService,
-    [FromServices] EmailService emailService,
     [FromBody] ClerkWebhookPayload payload) =>
 {
-    if (payload.Type == "user.created" || payload.Type == "user.updated")
+    var clerkUser = payload.Data;
+    if (clerkUser is null)
     {
-        var clerkUser = payload.Data;
-        var primaryEmail = clerkUser.EmailAddresses.FirstOrDefault(e => e.Id == clerkUser.PrimaryEmailAddressId);
-
-        if (primaryEmail == null)
-        {
-            // Or handle this error as you see fit
-            return Results.BadRequest("Primary email not found for user.");
-        }
-
-        var user = new User
-        {
-            ClerkId = clerkUser.Id,
-            Email = primaryEmail.EmailAddress,
-            Username = clerkUser.Username,
-            FirstName = clerkUser.FirstName,
-            LastName = clerkUser.LastName,
-            FullName = $"{clerkUser.FirstName} {clerkUser.LastName}".Trim(),
-            ProfileImageUrl = clerkUser.ImageUrl,
-            ContactInformation = new ContactInformation
-            {
-                Email = primaryEmail.EmailAddress
-            },
-            AccountStatus = new AccountStatus
-            {
-                EmailVerified = primaryEmail.Verification?.Status == "verified",
-                Banned = clerkUser.Banned,
-                Locked = false // Assuming 'locked' is not a direct field from Clerk and defaulting it
-            },
-            Statistics = new Statistics() // All stats default to 0
-        };
-
-        await userService.UpsertUserAsync(user);
-
-        // You can still keep the email service logic if you need a separate 'emails' collection
-        foreach (var emailData in clerkUser.EmailAddresses)
-        {
-            var newEmail = new Email
-            {
-                ClerkUserId = clerkUser.Id,
-                ClerkEmailId = emailData.Id,
-                EmailAddress = emailData.EmailAddress,
-                Reserved = emailData.Reserved
-            };
-            await emailService.UpsertEmailAsync(newEmail);
-        }
+        return Results.BadRequest("Payload data is missing.");
     }
 
-    return Results.Ok();
+    if (payload.Type == "user.created" || payload.Type == "user.updated")
+    {
+        await userService.UpsertUserAsync(clerkUser);
+        return Results.Ok(new { message = "User created or updated successfully" });
+    }
+    else if (payload.Type == "user.deleted")
+    {
+        await userService.DeleteUserAsync(clerkUser.Id);
+        return Results.Ok(new { message = "User deleted successfully" });
+    }
+
+    return Results.BadRequest(new { message = $"Unhandled event type: {payload.Type}" });
 });
+
+app.MapGet("/users", async ([FromServices] UserService userService) =>
+{
+    var users = await userService.GetAllUsersAsync();
+    return Results.Ok(users);
+});
+
+app.MapGet("/users/{userId}", async ([FromServices] UserService userService, string userId) =>
+{
+    var user = await userService.GetByClerkIdAsync(userId);
+
+    if (user == null)
+    {
+        return Results.NotFound(new { message = "User not found" });
+    }
+
+    return Results.Ok(user);
+});
+
+// This is the old DELETE endpoint, which is now replaced by the webhook-based one above.
+// I'm removing it to avoid confusion.
+// app.MapDelete("/users/{userId}", async ([FromServices] UserService userService, string userId) =>
+// {
+//     await userService.DeleteUserAsync(userId);
+//     return Results.NoContent();
+// });
 
 // PUT /api/emails/{clerkEmailId} - Update an email address
 app.MapPut("/api/emails/{clerkEmailId}", async (//defines the put endpoint using the url endpoint
