@@ -59,6 +59,12 @@ namespace HippoExchange.Models
 
         [JsonPropertyName("updated_at")]
         public long UpdatedAt { get; set; }
+
+        [JsonPropertyName("phone_number")]
+        public string? PhoneNumber { get; set; }
+
+        [JsonPropertyName("address")]
+        public Address? Address { get; set; }
     }
 
     public class ContactInformation

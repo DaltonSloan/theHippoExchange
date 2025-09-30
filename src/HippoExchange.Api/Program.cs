@@ -153,6 +153,23 @@ app.MapGet("/api/users/{userId}/assets", async ([FromServices] AssetService asse
     return Results.Ok(assets);
 });
 
+app.MapPatch("/users/{userId}", async ([FromServices] UserService userService, HttpContext ctx, string userId, [FromBody] ProfileUpdateRequest updateRequest) =>
+{
+    var authenticatedUserId = GetUserId(ctx);
+    if (string.IsNullOrWhiteSpace(authenticatedUserId) || authenticatedUserId != userId)
+    {
+        return Results.Unauthorized();
+    }
+
+    var success = await userService.UpdateUserProfileAsync(userId, updateRequest);
+    if (!success)
+    {
+        return Results.NotFound(new { message = "User not found or profile not updated." });
+    }
+
+    return Results.Ok(new { message = "Profile updated successfully." });
+});
+
 // PUT /api/assets/{assetId} - Replace (update) an asset
 app.MapPut("/api/assets/{assetId}", async ([FromServices] EditAssetService editAssetService, string assetId, Asset updatedAsset) =>
 {
