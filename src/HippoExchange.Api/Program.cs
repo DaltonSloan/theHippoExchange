@@ -61,9 +61,7 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =
 // Bind Mongo settings from env vars or appsettings
 builder.Services.Configure<MongoSettings>(builder.Configuration.GetSection("Mongo"));
 builder.Services.AddSingleton<UserService>();
-builder.Services.AddSingleton<EmailService>();
-builder.Services.AddSingleton<AssetService>();
-builder.Services.AddSingleton<EditAssetService>(); 
+builder.Services.AddSingleton<AssetService>(); 
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -171,17 +169,17 @@ app.MapPatch("/users/{userId}", async ([FromServices] UserService userService, H
 });
 
 // PUT /api/assets/{assetId} - Replace (update) an asset
-app.MapPut("/api/assets/{assetId}", async ([FromServices] EditAssetService editAssetService, string assetId, Asset updatedAsset) =>
+app.MapPut("/api/assets/{assetId}", async ([FromServices] AssetService assetService, string assetId, Asset updatedAsset) =>
 {
     if (string.IsNullOrWhiteSpace(assetId))
         return Results.BadRequest("Asset ID cannot be empty.");
 
     //Ensure the asset actually exists before replacing
-    var existing = await editAssetService.GetAssetByIdAsync(assetId);
+    var existing = await assetService.GetAssetByIdAsync(assetId);
     if (existing is null)
         return Results.NotFound($"Asset with ID {assetId} not found.");
 
-    var success = await editAssetService.ReplaceAssetAsync(assetId, updatedAsset);
+    var success = await assetService.ReplaceAssetAsync(assetId, updatedAsset);
     if (!success)
         return Results.Problem("Failed to update asset.");
 
@@ -193,7 +191,6 @@ app.MapPut("/api/assets/{assetId}", async ([FromServices] EditAssetService editA
 
 app.MapPost("/api/webhooks/clerk", [SwaggerRequestExample(typeof(ClerkWebhookPayload), typeof(ClerkWebhookExample))] async (
     [FromServices] UserService userService,
-    [FromServices] EmailService emailService,
     [FromBody] ClerkWebhookPayload payload) =>
 {
     var clerkUser = payload.Data;
@@ -205,14 +202,6 @@ app.MapPost("/api/webhooks/clerk", [SwaggerRequestExample(typeof(ClerkWebhookPay
     if (payload.Type == "user.created" || payload.Type == "user.updated")
     {
         await userService.UpsertUserAsync(clerkUser);
-
-        if (clerkUser.EmailAddresses is not null)
-        {
-            foreach (var emailData in clerkUser.EmailAddresses)
-            {
-                await emailService.UpsertEmailAsync(emailData);
-            }
-        }
         return Results.Ok(new { message = "User created or updated successfully" });
     }
     else if (payload.Type == "user.deleted")

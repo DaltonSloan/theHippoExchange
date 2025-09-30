@@ -34,7 +34,8 @@ namespace HippoExchange.Services
                 HasImage = clerkUser.HasImage,
                 PrimaryEmailAddressId = clerkUser.PrimaryEmailAddressId,
                 LastSignInAt = clerkUser.LastSignInAt,
-                UpdatedAt = clerkUser.UpdatedAt
+                UpdatedAt = clerkUser.UpdatedAt,
+                EmailAddresses = clerkUser.EmailAddresses
             };
 
             var filter = Builders<User>.Filter.Eq(u => u.ClerkId, user.ClerkId);

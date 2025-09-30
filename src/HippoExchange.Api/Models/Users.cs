@@ -1,6 +1,8 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.Text.Json.Serialization;
+using HippoExchange.Models.Clerk;
+using System.Collections.Generic;
 
 namespace HippoExchange.Models
 {
@@ -65,6 +67,9 @@ namespace HippoExchange.Models
 
         [JsonPropertyName("address")]
         public Address? Address { get; set; }
+
+        [JsonPropertyName("email_addresses")]
+        public List<ClerkEmailAddress>? EmailAddresses { get; set; }
     }
 
     public class ContactInformation
