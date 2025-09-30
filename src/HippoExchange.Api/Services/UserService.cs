@@ -27,5 +27,21 @@ namespace HippoExchange.Services
             var options = new ReplaceOptions { IsUpsert = true };
             await _usersCollection.ReplaceOneAsync(filter, user, options);
         }
+
+        public async Task CreateAssets(string userId, Assets newAsset)
+        {
+            //Filters through useres until we find the user we want to inset a new asset for
+            var filter = Builders<User>.Filter.Eq(u => u.Id, userId);
+
+            var update = Builders<User>.Update.Push(u => u.Assets, newAsset);
+
+            var result = await _usersCollection.UpdateOneAsync(filter, update);
+
+            if (result.MatchedCount == 0)
+            {
+                throw new Exception($"User with ClerkId {userId} not found.");
+            }
+           
+        }
     }
 }

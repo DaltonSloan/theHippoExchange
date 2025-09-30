@@ -84,4 +84,41 @@ namespace HippoExchange.Models
         [JsonPropertyName("assets_borrowed")]
         public int AssetsBorrowed { get; set; } = 0;
     }
+
+    public class Assets //This is a class for assets and all things related to them
+    {
+        [JsonPropertyName("assets_name")]//the name of the asset
+        public string AssetsName { get; set; } = "";
+
+        [JsonPropertyName("assets_description")]//description of the asset can be anything 
+        public string AssetsDescription { get; set; } = "";
+
+        [JsonPropertyName("assets_store")]//this attribute will store where the own originally bought the asset from
+        public string AssetsStore { get; set; } = "";
+
+        [JsonPropertyName("assets_Brand")]//ex: husky, milwaky, john deer ... brands of assets 
+        public string AssetsBrand { get; set; } = "";
+
+        [JsonPropertyName("assets_purchaseCost")]//what is cost the owner to buy the asset
+        public string AssetsPurchaseCost { get; set; } = "";
+
+        [JsonPropertyName("maitenance_dueDate")]// an input date when the owner expects maintenance to next be preformed
+        public string MaitenanceDueDate { get; set; } = "";
+
+        [JsonPropertyName("maitenance_title")]//brief description of what the maintenance is ex: oil change
+        public string MaitenanceTitle { get; set; } = "";
+
+        [JsonPropertyName("maitenance_description")]//an in depth description of how to do a given maitenance
+        public string MaitenanceDescription { get; set; } = "";
+
+        [JsonPropertyName("maitenance_status")]//how much more time till maitenance needs to be preformed 
+        public string MaitenanceStatus { get; set; } = "";
+
+        [JsonPropertyName("maitenance_toolsNeeded")]//tools that may be needed to perform maintenance on asset
+        public string MaitenanceToolsNeeded { get; set; } = "";
+
+        [JsonPropertyName("maitenance_history")]//history of previous maintenance
+        public string MaitenanceHistory { get; set; } = "";
+
+    }
 }

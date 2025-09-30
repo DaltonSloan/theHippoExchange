@@ -23,5 +23,7 @@ namespace HippoExchange.Services
             var options = new ReplaceOptions { IsUpsert = true };
             await _profiles.ReplaceOneAsync(p => p.UserId == profile.UserId, profile, options);
         }
+
+        
     }
 }
