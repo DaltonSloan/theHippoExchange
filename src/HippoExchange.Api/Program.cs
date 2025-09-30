@@ -174,78 +174,37 @@ app.MapPut("/api/assets/{assetId}", async ([FromServices] EditAssetService editA
 
 
 
-app.MapPost("/users", [SwaggerRequestExample(typeof(ClerkWebhookPayload), typeof(ClerkWebhookExample))] async (
+app.MapPost("/api/webhooks/clerk", [SwaggerRequestExample(typeof(ClerkWebhookPayload), typeof(ClerkWebhookExample))] async (
     [FromServices] UserService userService,
     [FromServices] EmailService emailService,
     [FromBody] ClerkWebhookPayload payload) =>
 {
-    if (payload.Type != "user.created")
+    var clerkUser = payload.Data;
+    if (clerkUser is null)
     {
-        return Results.BadRequest(new { message = "This endpoint only handles user.created events." });
+        return Results.BadRequest("Payload data is missing.");
     }
 
-    var clerkUser = payload.Data;
-    await userService.UpsertUserAsync(clerkUser);
-
-    if (clerkUser.EmailAddresses is not null)
+    if (payload.Type == "user.created" || payload.Type == "user.updated")
     {
-        foreach (var emailData in clerkUser.EmailAddresses)
+        await userService.UpsertUserAsync(clerkUser);
+
+        if (clerkUser.EmailAddresses is not null)
         {
-            await emailService.UpsertEmailAsync(emailData);
+            foreach (var emailData in clerkUser.EmailAddresses)
+            {
+                await emailService.UpsertEmailAsync(emailData);
+            }
         }
+        return Results.Ok(new { message = "User created or updated successfully" });
     }
-
-    return Results.Created($"/users/{clerkUser.Id}", new { message = "User created successfully" });
-});
-
-app.MapPut("/users/{userId}", [SwaggerRequestExample(typeof(ClerkWebhookPayload), typeof(ClerkWebhookExample))] async (
-    string userId,
-    [FromServices] UserService userService,
-    [FromServices] EmailService emailService,
-    [FromBody] ClerkWebhookPayload payload) =>
-{
-    if (payload.Type != "user.updated")
+    else if (payload.Type == "user.deleted")
     {
-        return Results.BadRequest(new { message = "This endpoint only handles user.updated events." });
+        await userService.DeleteUserAsync(clerkUser.Id);
+        return Results.Ok(new { message = "User deleted successfully" });
     }
 
-    var clerkUser = payload.Data;
-    if (userId != clerkUser.Id)
-    {
-        return Results.BadRequest(new { message = "User ID in URL does not match payload." });
-    }
-    
-    await userService.UpsertUserAsync(clerkUser);
-
-    if (clerkUser.EmailAddresses is not null)
-    {
-        foreach (var emailData in clerkUser.EmailAddresses)
-        {
-            await emailService.UpsertEmailAsync(emailData);
-        }
-    }
-
-    return Results.Ok(new { message = "User updated successfully" });
-});
-
-app.MapDelete("/users/{userId}", [SwaggerRequestExample(typeof(ClerkWebhookPayload), typeof(ClerkWebhookExample))] async (
-    string userId,
-    [FromServices] UserService userService,
-    [FromBody] ClerkWebhookPayload payload) =>
-{
-    if (payload.Type != "user.deleted")
-    {
-        return Results.BadRequest(new { message = "This endpoint only handles user.deleted events." });
-    }
-    
-    var clerkUser = payload.Data;
-    if (userId != clerkUser.Id)
-    {
-        return Results.BadRequest(new { message = "User ID in URL does not match payload." });
-    }
-
-    await userService.DeleteUserAsync(clerkUser.Id);
-    return Results.Ok(new { message = "User deleted successfully" });
+    return Results.BadRequest(new { message = $"Unhandled event type: {payload.Type}" });
 });
 
 app.MapGet("/users", async ([FromServices] UserService userService) =>
