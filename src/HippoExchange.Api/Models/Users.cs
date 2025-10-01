@@ -3,6 +3,7 @@ using MongoDB.Bson.Serialization.Attributes;
 using System.Text.Json.Serialization;
 using HippoExchange.Models.Clerk;
 using System.Collections.Generic;
+using HippoExchange.Models;
 
 namespace HippoExchange.Models
 {
@@ -72,7 +73,7 @@ namespace HippoExchange.Models
         public List<ClerkEmailAddress>? EmailAddresses { get; set; }
 
         [JsonPropertyName("assets")]//list of assets that the user will have 
-        public List<Assets> Assets { get; set; } = new();
+        public List<Asset> Assets { get; set; } = new();
 
     }
 
