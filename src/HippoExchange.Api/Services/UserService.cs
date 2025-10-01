@@ -57,7 +57,7 @@ namespace HippoExchange.Services
                 .Set(u => u.Address, updateRequest.Address);
 
             var result = await _usersCollection.UpdateOneAsync(filter, update);
-            return result.IsAcknowledged && result.ModifiedCount > 0;
+            return result.IsAcknowledged;
         }
 
         public async Task DeleteUserAsync(string clerkId) =>
