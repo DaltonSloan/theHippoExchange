@@ -124,7 +124,8 @@ app.MapPost("/api/profile", async ([FromServices] ProfileService svc, HttpContex
 
     var profile = await svc.GetByUserIdAsync(userId) ?? new PersonalProfile { UserId = userId };
 
-    profile.FullName = incoming.FullName;
+    profile.FirstName = incoming.FirstName;
+    profile.LastName = incoming.LastName;
     profile.Email = incoming.Email;
     profile.Phone = incoming.Phone;
     profile.Address = incoming.Address;
