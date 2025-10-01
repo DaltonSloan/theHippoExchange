@@ -10,7 +10,7 @@ namespace HippoExchange.Services
     {
         private readonly IMongoCollection<Maintenance> _maintenanceCollection;
 
-        public MaintenaceService(IOptions<MongoSettings> mongoSettings)
+        public MaintenanceService(IOptions<MongoSettings> mongoSettings)
         {
             var mongoClient = new MongoClient(mongoSettings.Value.ConnectionString);
             var mongoDatabase = mongoClient.GetDatabase(mongoSettings.Value.DatabaseName);
@@ -30,7 +30,7 @@ namespace HippoExchange.Services
 
         // Get a single maintenance record by ID
         public async Task<Maintenance?> GetMaintenanceByIdAsync(string maintenanceId) =>
-            await _maintenanceCollection.Find(maintenanceId => maintenanceId.Id == maintenanceId).FirstOrDefaultAsync();
+            await _maintenanceCollection.Find(m => m.Id == maintenanceId).FirstOrDefaultAsync();
 
         // Get all maintenance records (for "all maintenance" page)
         public async Task<List<Maintenance>> GetAllMaintenanceAsync() =>

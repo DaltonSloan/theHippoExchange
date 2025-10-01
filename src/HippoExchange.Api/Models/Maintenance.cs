@@ -21,7 +21,7 @@ namespace HippoExchange.Models
 
         // Purchase info
         // Purchase Location example: "Lowes", "Home Depot"
-        public string PurchaseLocation { get; set; }
+        public string PurchaseLocation { get; set; } = string.Empty;
         public decimal CostPaid { get; set; }
 
         // Maintenace details
