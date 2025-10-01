@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Collections.Generic;
 
@@ -13,6 +14,9 @@ namespace HippoExchange.Models.Clerk
 
         [JsonPropertyName("type")]
         public string Type { get; set; } = string.Empty;
+
+        [JsonPropertyName("timestamp")]
+        public long Timestamp { get; set; }
     }
 
     public class ClerkUserData
@@ -33,7 +37,7 @@ namespace HippoExchange.Models.Clerk
         public string? LastName { get; set; }
 
         [JsonPropertyName("image_url")]
-        public string ImageUrl { get; set; } = string.Empty;
+        public string? ImageUrl { get; set; }
 
         [JsonPropertyName("has_image")]
         public bool HasImage { get; set; }
@@ -54,22 +58,22 @@ namespace HippoExchange.Models.Clerk
         public bool TwoFactorEnabled { get; set; }
 
         [JsonPropertyName("email_addresses")]
-        public List<ClerkEmailAddress> EmailAddresses { get; set; } = new();
+        public List<ClerkEmailAddress>? EmailAddresses { get; set; }
 
         [JsonPropertyName("phone_numbers")]
-        public List<object> PhoneNumbers { get; set; } = new();
+        public List<object>? PhoneNumbers { get; set; }
 
         [JsonPropertyName("external_accounts")]
-        public List<object> ExternalAccounts { get; set; } = new();
+        public List<object>? ExternalAccounts { get; set; }
 
         [JsonPropertyName("public_metadata")]
-        public object PublicMetadata { get; set; } = new();
+        public JsonElement? PublicMetadata { get; set; }
 
         [JsonPropertyName("private_metadata")]
-        public object PrivateMetadata { get; set; } = new();
+        public JsonElement? PrivateMetadata { get; set; }
 
         [JsonPropertyName("unsafe_metadata")]
-        public object UnsafeMetadata { get; set; } = new();
+        public JsonElement? UnsafeMetadata { get; set; }
 
         [JsonPropertyName("external_id")]
         public string? ExternalId { get; set; }
@@ -108,9 +112,9 @@ namespace HippoExchange.Models.Clerk
     public class ClerkVerification
     {
         [JsonPropertyName("status")]
-        public string Status { get; set; } = string.Empty;
+        public string? Status { get; set; }
 
         [JsonPropertyName("strategy")]
-        public string Strategy { get; set; } = string.Empty;
+        public string? Strategy { get; set; }
     }
 }

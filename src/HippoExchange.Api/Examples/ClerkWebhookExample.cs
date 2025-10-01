@@ -43,14 +43,14 @@ namespace HippoExchange.Api.Examples
                     },
                     PhoneNumbers = new List<object>(),
                     ExternalAccounts = new List<object>(),
-                    PublicMetadata = new object(),
-                    PrivateMetadata = new object(),
-                    UnsafeMetadata = new object(),
+                    PublicMetadata = System.Text.Json.JsonSerializer.SerializeToElement(new {}),
+                    PrivateMetadata = System.Text.Json.JsonSerializer.SerializeToElement(new {}),
+                    UnsafeMetadata = System.Text.Json.JsonSerializer.SerializeToElement(new {}),
                     ExternalId = null,
-                    LastSignInAt = 1726942676284,
+                    LastSignInAt = 1678886400000,
                     Banned = false,
                     CreatedAt = 1726942676273,
-                    UpdatedAt = 1726942676306
+                    UpdatedAt = 1678886400000
                 }
             };
         }
