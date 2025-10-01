@@ -35,5 +35,11 @@ namespace HippoExchange.Services
             var result = await _assetsCollection.ReplaceOneAsync(a => a.Id == assetId, updatedAsset);
             return result.ModifiedCount > 0;
         }
+        public async Task<bool> DeleteAsset(string assetId)//this method is to delete a specified asset 
+        {
+            //delets the asset by comparing it with its id and returns meta data to use in error handeling
+            var result = await _assetsCollection.DeleteOneAsync(a => a.Id == assetId);
+            return result.DeletedCount > 0;//this will return true or false depending on if the delete is successful
+        }
     }
 }

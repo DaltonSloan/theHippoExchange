@@ -61,7 +61,9 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =
 // Bind Mongo settings from env vars or appsettings
 builder.Services.Configure<MongoSettings>(builder.Configuration.GetSection("Mongo"));
 builder.Services.AddSingleton<UserService>();
-builder.Services.AddSingleton<AssetService>(); 
+builder.Services.AddSingleton<AssetService>();
+
+builder.Services.AddSingleton<MaintenanceService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -187,7 +189,35 @@ app.MapPut("/api/assets/{assetId}", async ([FromServices] AssetService assetServ
     return Results.Ok(updatedAsset);
 });
 
+// POST /api/assets/{assetId}/maintenance - Add maintenance to an asset
+app.MapPost("/api/assets/{assetId}/maintenance", async (
+    [FromServices] MaintenanceService maintenanceService,
+    string assetId,
+    Maintenance maintenance) =>
+    {
+        if (string.IsNullOrWhiteSpace(assetId)) return Results.BadRequest("Asset ID required");
 
+        maintenance.AssetId = assetId;
+        var created = await maintenanceService.CreateMaintenanceAsync(maintenance);
+        return Results.Created($"/api/maintenance/{created.Id}", created);
+    });
+
+// GET /api/assets/{assetId}/maintenance - Get all maintenance for one asset
+app.MapGet("/api/assets/{assetId}/maintenance", async (
+    [FromServices] MaintenanceService maintenanceService,
+    string assetId) =>
+    {
+        var records = await maintenanceService.GetMaintenanceByAssetIdAsync(assetId);
+        return Results.Ok(records);
+    });
+
+// GET /api/maintenance - Get all maintenance records
+app.MapGet("/api/maintenace", async (
+    [FromServices] MaintenanceService maintenanceService) =>
+    {
+        var records = await maintenanceService.GetAllMaintenanceAsync();
+        return Results.Ok(records);
+    });
 
 app.MapPost("/api/webhooks/clerk", [SwaggerRequestExample(typeof(ClerkWebhookPayload), typeof(ClerkWebhookExample))] async (
     [FromServices] UserService userService,

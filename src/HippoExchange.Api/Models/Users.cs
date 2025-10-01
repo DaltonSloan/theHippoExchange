@@ -70,6 +70,10 @@ namespace HippoExchange.Models
 
         [JsonPropertyName("email_addresses")]
         public List<ClerkEmailAddress>? EmailAddresses { get; set; }
+
+        [JsonPropertyName("assets")]//list of assets that the user will have 
+        public List<Assets> Assets { get; set; } = new();
+
     }
 
     public class ContactInformation
@@ -111,6 +115,7 @@ namespace HippoExchange.Models
         public int AssetsBorrowed { get; set; } = 0;
     }
 
+/*
     public class Assets //This is a class for assets and all things related to them
     {
         [JsonPropertyName("assets_name")]//the name of the asset
@@ -147,4 +152,5 @@ namespace HippoExchange.Models
         public string MaitenanceHistory { get; set; } = "";
 
     }
+*/
 }

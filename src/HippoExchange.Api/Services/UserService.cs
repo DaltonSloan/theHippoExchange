@@ -63,20 +63,23 @@ namespace HippoExchange.Services
         public async Task DeleteUserAsync(string clerkId) =>
             await _usersCollection.DeleteOneAsync(u => u.ClerkId == clerkId);
 
-        public async Task CreateAssets(string userId, Assets newAsset)
+
+/*
+        public async Task CreateNewAssets(string userId, Assets newAsset)
         {
             //Filters through useres until we find the user we want to inset a new asset for
             var filter = Builders<User>.Filter.Eq(u => u.Id, userId);
-
+            //push the user newasset into the asset list
             var update = Builders<User>.Update.Push(u => u.Assets, newAsset);
-
+            //retrives meta data to use else where
             var result = await _usersCollection.UpdateOneAsync(filter, update);
 
-            if (result.MatchedCount == 0)
+            if (result.MatchedCount == 0)//error handeling if account is not found
             {
                 throw new Exception($"User with ClerkId {userId} not found.");
             }
-           
+
         }
+*/
     }
 }

@@ -22,5 +22,6 @@ namespace HippoExchange.Models
         public string ConditionDescription { get; set; } = string.Empty;
         public string OwnerUserId { get; set; } = string.Empty;
         public string Status { get; set; } = "available"; // e.g., "available", "loaned", "maintenance"
+        public bool Favorite { get; set; } = false;
     }
 }
