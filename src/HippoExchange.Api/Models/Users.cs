@@ -72,7 +72,7 @@ namespace HippoExchange.Models
         public List<ClerkEmailAddress>? EmailAddresses { get; set; }
 
         [JsonPropertyName("assets")]//list of assets that the user will have 
-        public List<Asset> Assets { get; set; } = new();
+        public List<Assets> Assets { get; set; } = new();
 
     }
 
