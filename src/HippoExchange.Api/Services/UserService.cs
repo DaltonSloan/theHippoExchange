@@ -2,6 +2,7 @@ using HippoExchange.Models;
 using HippoExchange.Models.Clerk;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using System.Linq;
 
 namespace HippoExchange.Services
 {
@@ -24,6 +25,18 @@ namespace HippoExchange.Services
 
         public async Task UpsertUserAsync(ClerkUserData clerkUser)
         {
+            // Resolve primary email: prefer PrimaryEmailAddressId match; fallback to first available
+            string? primaryEmail = null;
+            if (clerkUser.EmailAddresses != null && clerkUser.EmailAddresses.Count > 0)
+            {
+                if (!string.IsNullOrWhiteSpace(clerkUser.PrimaryEmailAddressId))
+                {
+                    primaryEmail = clerkUser.EmailAddresses
+                        .FirstOrDefault(e => e.Id == clerkUser.PrimaryEmailAddressId)?.EmailAddress;
+                }
+                primaryEmail ??= clerkUser.EmailAddresses.FirstOrDefault()?.EmailAddress;
+            }
+
             var user = new User
             {
                 ClerkId = clerkUser.Id,
@@ -35,7 +48,12 @@ namespace HippoExchange.Services
                 PrimaryEmailAddressId = clerkUser.PrimaryEmailAddressId,
                 LastSignInAt = clerkUser.LastSignInAt,
                 UpdatedAt = clerkUser.UpdatedAt,
-                EmailAddresses = clerkUser.EmailAddresses
+                EmailAddresses = clerkUser.EmailAddresses,
+                Email = primaryEmail ?? string.Empty,
+                ContactInformation = new ContactInformation
+                {
+                    Email = primaryEmail ?? string.Empty,
+                }
             };
 
             var filter = Builders<User>.Filter.Eq(u => u.ClerkId, user.ClerkId);
