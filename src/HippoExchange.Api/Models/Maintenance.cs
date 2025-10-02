@@ -1,40 +1,54 @@
+using System.ComponentModel.DataAnnotations;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using System.Collections.Generic;
-using System;
+using HippoExchange.Models;
 
-namespace HippoExchange.Models
+namespace HippoExchange.Api.Models
 {
     public class Maintenance
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        [BsonIgnoreIfDefault]
         public string? Id { get; set; }
 
+        [Required]
         [BsonRepresentation(BsonType.ObjectId)]
         public string AssetId { get; set; } = string.Empty;
 
-        // Basic product info
-        public string BrandName { get; set; } = string.Empty;
-        public string ProductName { get; set; } = string.Empty;
+        [Required]
+        public DateTime Date { get; set; }
 
-        // Purchase info
-        // Purchase Location example: "Lowes", "Home Depot"
-        public string PurchaseLocation { get; set; } = string.Empty;
-        public decimal CostPaid { get; set; }
+        [Required]
+        public string Description { get; set; } = string.Empty;
+        
+        public string PerformedBy { get; set; } = string.Empty;
 
-        // Maintenace details
-        public DateTime MaintenanceDueDate { get; set; }
-        public string MaintenanceTitle { get; set; } = string.Empty;
-        public string MaintenanceDescription { get; set; } = string.Empty;
-        public string MaintenanceStatus { get; set; } = "pending"; // or could be "completed"
+        public decimal Cost { get; set; }
+        
+        public string Status { get; set; } = "Pending";
+    }
 
-        // History and preservation
-        public bool PreserveFromPrior { get; set; }
+    public class CreateMaintenanceRequest
+    {
+        [Required]
+        public string AssetId { get; set; } = string.Empty;
+        [Required]
+        public DateTime Date { get; set; }
+        [Required]
+        public string Description { get; set; } = string.Empty;
+        public string PerformedBy { get; set; } = string.Empty;
+        public decimal Cost { get; set; }
+        public string Status { get; set; } = "Pending";
+    }
 
-        // Attributes required to know about the tools
-        public string RequiredTools { get; set; } = string.Empty;
-        public string ToolLocation { get; set; } = string.Empty;
+    public class UpdateMaintenanceRequest
+    {
+        [Required]
+        public DateTime Date { get; set; }
+        [Required]
+        public string Description { get; set; } = string.Empty;
+        public string PerformedBy { get; set; } = string.Empty;
+        public decimal Cost { get; set; }
+        public string Status { get; set; } = "Pending";
     }
 }

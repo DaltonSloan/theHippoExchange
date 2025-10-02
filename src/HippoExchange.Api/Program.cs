@@ -239,8 +239,8 @@ app.MapDelete("/assets/{assetId}", async ([FromServices] AssetService assetServi
     return success ? Results.NoContent() : Results.Problem("Delete failed.");
 });
 
-// GET /assets/{assetId}/maintenance - Get all maintenance for one asset
-app.MapGet("/assets/{assetId}/maintenance", async (
+// GET /maintenance/by-asset/{assetId} - Get all maintenance for one asset
+app.MapGet("/maintenance/by-asset/{assetId}", async (
     [FromServices] MaintenanceService maintenanceService,
     string assetId) =>
     {
@@ -271,6 +271,103 @@ app.MapGet("/maintenance", async (
         var records = await maintenanceService.GetMaintenanceByAssetIdsAsync(assetIds!);
         return Results.Ok(records);
     });
+
+// POST /maintenance - Create a new maintenance record
+app.MapPost("/maintenance", async (
+    [FromServices] MaintenanceService maintenanceService,
+    [FromServices] AssetService assetService,
+    HttpContext ctx,
+    [FromBody] CreateMaintenanceRequest request) =>
+{
+    var userId = GetUserId(ctx);
+    if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
+
+    // Verify user owns the asset
+    var asset = await assetService.GetAssetByIdAsync(request.AssetId);
+    if (asset is null) return Results.NotFound("Asset not found.");
+    if (asset.OwnerUserId != userId) return Results.Forbid();
+
+    var newRecord = new Maintenance
+    {
+        AssetId = request.AssetId,
+        Date = request.Date,
+        Description = request.Description,
+        PerformedBy = request.PerformedBy,
+        Cost = request.Cost
+    };
+
+    var createdRecord = await maintenanceService.CreateMaintenanceAsync(newRecord);
+    return Results.Created($"/maintenance/{createdRecord.Id}", createdRecord);
+});
+
+// GET /maintenance/{maintenanceId} - Get a single maintenance record
+app.MapGet("/maintenance/{maintenanceId}", async (
+    [FromServices] MaintenanceService maintenanceService,
+    [FromServices] AssetService assetService,
+    HttpContext ctx,
+    string maintenanceId) =>
+{
+    var userId = GetUserId(ctx);
+    if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
+
+    var record = await maintenanceService.GetMaintenanceByIdAsync(maintenanceId);
+    if (record is null) return Results.NotFound();
+
+    // Verify user owns the asset associated with the maintenance record
+    var asset = await assetService.GetAssetByIdAsync(record.AssetId);
+    if (asset is null || asset.OwnerUserId != userId) return Results.Forbid();
+
+    return Results.Ok(record);
+});
+
+// PUT /maintenance/{maintenanceId} - Update a maintenance record
+app.MapPut("/maintenance/{maintenanceId}", async (
+    [FromServices] MaintenanceService maintenanceService,
+    [FromServices] AssetService assetService,
+    HttpContext ctx,
+    string maintenanceId,
+    [FromBody] UpdateMaintenanceRequest request) =>
+{
+    var userId = GetUserId(ctx);
+    if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
+
+    var existingRecord = await maintenanceService.GetMaintenanceByIdAsync(maintenanceId);
+    if (existingRecord is null) return Results.NotFound();
+
+    // Verify user owns the asset
+    var asset = await assetService.GetAssetByIdAsync(existingRecord.AssetId);
+    if (asset is null || asset.OwnerUserId != userId) return Results.Forbid();
+
+    // Update properties
+    existingRecord.Date = request.Date;
+    existingRecord.Description = request.Description;
+    existingRecord.PerformedBy = request.PerformedBy;
+    existingRecord.Cost = request.Cost;
+
+    var success = await maintenanceService.UpdateMaintenanceAsync(maintenanceId, existingRecord);
+    return success ? Results.NoContent() : Results.Problem("Update failed.");
+});
+
+// DELETE /maintenance/{maintenanceId} - Delete a maintenance record
+app.MapDelete("/maintenance/{maintenanceId}", async (
+    [FromServices] MaintenanceService maintenanceService,
+    [FromServices] AssetService assetService,
+    HttpContext ctx,
+    string maintenanceId) =>
+{
+    var userId = GetUserId(ctx);
+    if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
+
+    var record = await maintenanceService.GetMaintenanceByIdAsync(maintenanceId);
+    if (record is null) return Results.NotFound();
+
+    // Verify user owns the asset
+    var asset = await assetService.GetAssetByIdAsync(record.AssetId);
+    if (asset is null || asset.OwnerUserId != userId) return Results.Forbid();
+
+    var success = await maintenanceService.DeleteMaintenanceAsync(maintenanceId);
+    return success ? Results.NoContent() : Results.Problem("Delete failed.");
+});
 
 app.MapPost("/api/webhooks/clerk", [SwaggerRequestExample(typeof(ClerkWebhookPayload), typeof(ClerkWebhookExample))] async (
     [FromServices] UserService userService,
