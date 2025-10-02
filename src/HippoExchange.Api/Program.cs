@@ -20,7 +20,7 @@ var shouldReset = args.Contains("reset") || args.Contains("--reset");
 
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(
+    options.AddPolicy("AllowAll",
         builder =>
         {
             builder.AllowAnyOrigin()
@@ -147,7 +147,7 @@ FiggleFont font = FiggleFonts.Bulbhead;
 var staticCow = await DefaultCattleFarmer.RearCowWithDefaults("default");
 app.MapGet("/join", () => Results.Text(font.Render("Welcome to the bloat!")));
 
-app.UseCors();
+app.UseCors("AllowAll");
 
 app.UseSwagger();
 app.UseSwaggerUI();
