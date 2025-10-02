@@ -3,6 +3,7 @@ using HippoExchange.Models.Clerk;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace HippoExchange.Services
 {
@@ -70,14 +71,37 @@ namespace HippoExchange.Services
         public async Task<bool> UpdateUserProfileAsync(string clerkId, ProfileUpdateRequest updateRequest)
         {
             var filter = Builders<User>.Filter.Eq(u => u.ClerkId, clerkId);
-            var update = Builders<User>.Update
-                .Set(u => u.PhoneNumber, updateRequest.PhoneNumber)
-                .Set(u => u.Address, updateRequest.Address)
-                .Set(u => u.FirstName, updateRequest.FirstName)
-                .Set(u => u.LastName, updateRequest.LastName);
+            var updates = new List<UpdateDefinition<User>>();
 
-            var result = await _usersCollection.UpdateOneAsync(filter, update);
-            return result.IsAcknowledged;
+            if (updateRequest.PhoneNumber is not null)
+                updates.Add(Builders<User>.Update.Set(u => u.PhoneNumber, updateRequest.PhoneNumber));
+
+            if (updateRequest.FirstName is not null)
+                updates.Add(Builders<User>.Update.Set(u => u.FirstName, updateRequest.FirstName));
+
+            if (updateRequest.LastName is not null)
+                updates.Add(Builders<User>.Update.Set(u => u.LastName, updateRequest.LastName));
+
+            if (updateRequest.Address is not null)
+            {
+                if (updateRequest.Address.Street is not null)
+                    updates.Add(Builders<User>.Update.Set(u => u.Address!.Street, updateRequest.Address.Street));
+                if (updateRequest.Address.City is not null)
+                    updates.Add(Builders<User>.Update.Set(u => u.Address!.City, updateRequest.Address.City));
+                if (updateRequest.Address.State is not null)
+                    updates.Add(Builders<User>.Update.Set(u => u.Address!.State, updateRequest.Address.State));
+                if (updateRequest.Address.PostalCode is not null)
+                    updates.Add(Builders<User>.Update.Set(u => u.Address!.PostalCode, updateRequest.Address.PostalCode));
+                if (updateRequest.Address.Country is not null)
+                    updates.Add(Builders<User>.Update.Set(u => u.Address!.Country, updateRequest.Address.Country));
+            }
+
+            if (updates.Count == 0)
+                return false; // nothing to update
+
+            var combined = Builders<User>.Update.Combine(updates);
+            var result = await _usersCollection.UpdateOneAsync(filter, combined);
+            return result.IsAcknowledged && result.MatchedCount > 0;
         }
 
         public async Task DeleteUserAsync(string clerkId) =>
