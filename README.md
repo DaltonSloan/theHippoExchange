@@ -44,6 +44,70 @@ This project is set up to run in a containerized environment for easy developmen
     dotnet run
     ```
 
+## 🌱 Database Seeding
+
+The application includes a database seeding feature to populate the database with realistic demo data for development and testing.
+
+### Seeding Commands
+
+**Seed the database with demo data:**
+```bash
+cd /workspace/src/HippoExchange.Api
+dotnet run seed
+```
+
+**Reset and re-seed the database (⚠️ WARNING: Deletes ALL data):**
+```bash
+cd /workspace/src/HippoExchange.Api
+dotnet run reset
+```
+
+### Demo Data Overview
+
+The seeding script creates:
+
+- **3 Demo Users** with different personas:
+  - **John Smith** (`clerk_john_smith`) - Homeowner with lawn/garden equipment
+  - **Jane Doe** (`clerk_jane_doe`) - Hobbyist with workshop tools
+  - **Bob Builder** (`clerk_bob_builder`) - Contractor with professional equipment
+
+- **5-10 Assets per user** with varied data:
+  - Mix of brands (DeWalt, Craftsman, Honda, Makita, Milwaukee, etc.)
+  - Different statuses (available, maintenance, loaned)
+  - Various cost ranges ($10 to $5000)
+  - Mix of favorited and non-favorited assets
+  - Realistic purchase dates and locations
+
+- **8-15 Maintenance records per asset** with variety:
+  - Some overdue (due date in past)
+  - Some due soon (within 7 days)
+  - Some due later (within 30 days)
+  - Some completed
+  - Realistic maintenance tasks and required tools
+
+### Using Demo Users
+
+To test API endpoints with demo users, use their Clerk IDs in the `X-User-Id` header:
+
+```bash
+# Example: Get assets for John Smith
+curl -H "X-User-Id: clerk_john_smith" http://localhost:8080/api/assets
+
+# Example: Get assets for Jane Doe
+curl -H "X-User-Id: clerk_jane_doe" http://localhost:8080/api/assets
+
+# Example: Get assets for Bob Builder
+curl -H "X-User-Id: clerk_bob_builder" http://localhost:8080/api/assets
+```
+
+### Important Notes
+
+- **Seeding is idempotent**: Running the seed command multiple times will not create duplicates. Existing demo users are removed and recreated.
+- **Development only**: Seeding commands only work when `ASPNETCORE_ENVIRONMENT=Development` for safety.
+- **Reset vs Seed**: 
+  - `seed` - Removes only demo data and creates fresh demo data
+  - `reset` - ⚠️ **Deletes ALL data** in the database and creates fresh demo data
+
 ## 🌐 Endpoints
 
 Once the application is running, you can access the following endpoints:

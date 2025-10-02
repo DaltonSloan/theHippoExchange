@@ -14,6 +14,10 @@ using Cowsay;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Check for seeding commands before building the application
+var shouldSeed = args.Contains("seed") || args.Contains("--seed");
+var shouldReset = args.Contains("reset") || args.Contains("--reset");
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(
@@ -62,8 +66,8 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =
 builder.Services.Configure<MongoSettings>(builder.Configuration.GetSection("Mongo"));
 builder.Services.AddSingleton<UserService>();
 builder.Services.AddSingleton<AssetService>();
-
 builder.Services.AddSingleton<MaintenanceService>();
+builder.Services.AddSingleton<DatabaseSeeder>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -93,6 +97,41 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddSwaggerExamplesFromAssemblies(typeof(ClerkWebhookExample).Assembly);
 
 var app = builder.Build();
+
+// Handle database seeding commands (only in development for safety)
+if (builder.Environment.IsDevelopment() && (shouldSeed || shouldReset))
+{
+    var seeder = app.Services.GetRequiredService<DatabaseSeeder>();
+    
+    try
+    {
+        if (shouldReset)
+        {
+            Console.WriteLine("🔄 Resetting database and seeding with demo data...\n");
+            await seeder.ResetDatabaseAsync();
+        }
+        else if (shouldSeed)
+        {
+            Console.WriteLine("🌱 Seeding database with demo data...\n");
+            await seeder.SeedDatabaseAsync();
+        }
+        
+        Console.WriteLine("\n✨ Seeding completed successfully!");
+        return; // Exit after seeding
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"\n❌ Error during seeding: {ex.Message}");
+        Console.WriteLine(ex.StackTrace);
+        return;
+    }
+}
+else if (!builder.Environment.IsDevelopment() && (shouldSeed || shouldReset))
+{
+    Console.WriteLine("❌ Error: Database seeding is only available in Development environment for safety.");
+    Console.WriteLine("   To seed the database, ensure ASPNETCORE_ENVIRONMENT=Development");
+    return;
+}
 
 // If we're in a container in dev, we won't have the dev cert.
 // The docker-compose file sets the URL to http only, so we need to clear
