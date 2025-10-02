@@ -1,5 +1,6 @@
 using HippoExchange.Models;
 using HippoExchange.Models.Clerk;
+using HippoExchange.Api.Models;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 

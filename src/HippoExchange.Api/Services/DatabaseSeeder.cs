@@ -2,6 +2,7 @@ using HippoExchange.Models;
 using HippoExchange.Models.Clerk;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using HippoExchange.Api.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -4,6 +4,7 @@ using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Filters;
 using HippoExchange.Api.Examples;
+using HippoExchange.Api.Models;
 using HippoExchange.Models.Clerk;
 using System.Text.Json;
 using Google.Cloud.SecretManager.V1;
@@ -146,20 +147,33 @@ if (!app.Environment.IsDevelopment())
 string? GetUserId(HttpContext ctx) =>
     ctx.Request.Headers.TryGetValue("X-User-Id", out var v) ? v.ToString() : null;
 
-// POST /api/assets - Add a new asset
-app.MapPost("/api/assets", async ([FromServices] AssetService assetService, HttpContext ctx, [FromBody] Assets newAsset) =>
+// POST /assets - Create a new asset
+app.MapPost("/assets", async ([FromServices] AssetService assetService, HttpContext ctx, [FromBody] CreateAssetRequest assetRequest) =>
 {
     var userId = GetUserId(ctx);
     if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
 
-    newAsset.OwnerUserId = userId;
+    var newAsset = new Assets
+    {
+        OwnerUserId = userId,
+        ItemName = assetRequest.ItemName,
+        BrandName = assetRequest.BrandName,
+        Category = assetRequest.Category,
+        PurchaseDate = assetRequest.PurchaseDate,
+        PurchaseCost = assetRequest.PurchaseCost,
+        CurrentLocation = assetRequest.CurrentLocation,
+        Images = assetRequest.Images,
+        ConditionDescription = assetRequest.ConditionDescription,
+        Status = assetRequest.Status,
+        Favorite = assetRequest.Favorite
+    };
+
     var createdAsset = await assetService.CreateAssetAsync(newAsset);
-
-    return Results.Created($"/api/assets/{createdAsset.Id}", createdAsset);
+    return Results.Created($"/assets/{createdAsset.Id}", createdAsset);
 });
 
-// GET /api/assets - Get all assets for the current user
-app.MapGet("/api/assets", async ([FromServices] AssetService assetService, HttpContext ctx) =>
+// GET /assets - Get all assets for the current user
+app.MapGet("/assets", async ([FromServices] AssetService assetService, HttpContext ctx) =>
 {
     var userId = GetUserId(ctx);
     if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
@@ -168,66 +182,65 @@ app.MapGet("/api/assets", async ([FromServices] AssetService assetService, HttpC
     return Results.Ok(assets);
 });
 
-// GET /api/users/{userId}/assets - Get all assets for a specific user
-app.MapGet("/api/users/{userId}/assets", async ([FromServices] AssetService assetService, string userId) =>
+// GET /assets/{assetId} - Get a specific asset
+app.MapGet("/assets/{assetId}", async ([FromServices] AssetService assetService, HttpContext ctx, string assetId) =>
 {
-    if (string.IsNullOrWhiteSpace(userId)) return Results.BadRequest("User ID cannot be empty.");
+    var userId = GetUserId(ctx);
+    if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
 
-    var assets = await assetService.GetAssetsByOwnerIdAsync(userId);
-    return Results.Ok(assets);
+    var asset = await assetService.GetAssetByIdAsync(assetId);
+    if (asset is null) return Results.NotFound();
+    if (asset.OwnerUserId != userId) return Results.Forbid();
+
+    return Results.Ok(asset);
 });
 
-app.MapPatch("/users/{userId}", async ([FromServices] UserService userService, HttpContext ctx, string userId, [FromBody] ProfileUpdateRequest updateRequest) =>
+// PUT /assets/{assetId} - Update an asset
+app.MapPut("/assets/{assetId}", async ([FromServices] AssetService assetService, HttpContext ctx, string assetId, [FromBody] UpdateAssetRequest updatedAssetRequest) =>
 {
-    var authenticatedUserId = GetUserId(ctx);
-    if (string.IsNullOrWhiteSpace(authenticatedUserId) || authenticatedUserId != userId)
+    var userId = GetUserId(ctx);
+    if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
+
+    var existingAsset = await assetService.GetAssetByIdAsync(assetId);
+    if (existingAsset is null) return Results.NotFound();
+    if (existingAsset.OwnerUserId != userId) return Results.Forbid();
+
+    var updatedAsset = new Assets
     {
-        return Results.Unauthorized();
-    }
-
-    var success = await userService.UpdateUserProfileAsync(userId, updateRequest);
-    if (!success)
-    {
-        return Results.NotFound(new { message = "User not found or profile not updated." });
-    }
-
-    return Results.Ok(new { message = "Profile updated successfully." });
-});
-
-// PUT /api/assets/{assetId} - Replace (update) an asset
-app.MapPut("/api/assets/{assetId}", async ([FromServices] AssetService assetService, string assetId, Assets updatedAsset) =>
-{
-    if (string.IsNullOrWhiteSpace(assetId))
-        return Results.BadRequest("Asset ID cannot be empty.");
-
-    //Ensure the asset actually exists before replacing
-    var existing = await assetService.GetAssetByIdAsync(assetId);
-    if (existing is null)
-        return Results.NotFound($"Asset with ID {assetId} not found.");
+        Id = assetId,
+        OwnerUserId = userId,
+        ItemName = updatedAssetRequest.ItemName,
+        BrandName = updatedAssetRequest.BrandName,
+        Category = updatedAssetRequest.Category,
+        PurchaseDate = updatedAssetRequest.PurchaseDate,
+        PurchaseCost = updatedAssetRequest.PurchaseCost,
+        CurrentLocation = updatedAssetRequest.CurrentLocation,
+        Images = updatedAssetRequest.Images,
+        ConditionDescription = updatedAssetRequest.ConditionDescription,
+        Status = updatedAssetRequest.Status,
+        Favorite = updatedAssetRequest.Favorite
+    };
 
     var success = await assetService.ReplaceAssetAsync(assetId, updatedAsset);
-    if (!success)
-        return Results.Problem("Failed to update asset.");
-
-    //retun the updated asset
-    return Results.Ok(updatedAsset);
+    return success ? Results.NoContent() : Results.Problem("Update failed.");
 });
 
-// POST /api/assets/{assetId}/maintenance - Add maintenance to an asset
-app.MapPost("/api/assets/{assetId}/maintenance", async (
-    [FromServices] MaintenanceService maintenanceService,
-    string assetId,
-    Maintenance maintenance) =>
-    {
-        if (string.IsNullOrWhiteSpace(assetId)) return Results.BadRequest("Asset ID required");
+// DELETE /assets/{assetId} - Delete an asset
+app.MapDelete("/assets/{assetId}", async ([FromServices] AssetService assetService, HttpContext ctx, string assetId) =>
+{
+    var userId = GetUserId(ctx);
+    if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
 
-        maintenance.AssetId = assetId;
-        var created = await maintenanceService.CreateMaintenanceAsync(maintenance);
-        return Results.Created($"/api/maintenance/{created.Id}", created);
-    });
+    var asset = await assetService.GetAssetByIdAsync(assetId);
+    if (asset is null) return Results.NotFound();
+    if (asset.OwnerUserId != userId) return Results.Forbid();
 
-// GET /api/assets/{assetId}/maintenance - Get all maintenance for one asset
-app.MapGet("/api/assets/{assetId}/maintenance", async (
+    var success = await assetService.DeleteAsset(assetId);
+    return success ? Results.NoContent() : Results.Problem("Delete failed.");
+});
+
+// GET /assets/{assetId}/maintenance - Get all maintenance for one asset
+app.MapGet("/assets/{assetId}/maintenance", async (
     [FromServices] MaintenanceService maintenanceService,
     string assetId) =>
     {
@@ -235,8 +248,8 @@ app.MapGet("/api/assets/{assetId}/maintenance", async (
         return Results.Ok(records);
     });
 
-// GET /api/maintenance - Get all maintenance records
-app.MapGet("/api/maintenace", async (
+// GET /maintenance - Get all maintenance records
+app.MapGet("/maintenace", async (
     [FromServices] MaintenanceService maintenanceService) =>
     {
         var records = await maintenanceService.GetAllMaintenanceAsync();
@@ -285,6 +298,22 @@ app.MapGet("/users/{userId}", async ([FromServices] UserService userService, str
     return Results.Ok(user);
 });
 
+app.MapPatch("/users/{userId}", async ([FromServices] UserService userService, HttpContext ctx, string userId, [FromBody] ProfileUpdateRequest updateRequest) =>
+{
+    var authenticatedUserId = GetUserId(ctx);
+    if (string.IsNullOrWhiteSpace(authenticatedUserId) || authenticatedUserId != userId)
+    {
+        return Results.Unauthorized();
+    }
+
+    var success = await userService.UpdateUserProfileAsync(userId, updateRequest);
+    if (!success)
+    {
+        return Results.NotFound(new { message = "User not found or profile not updated." });
+    }
+
+    return Results.Ok(new { message = "Profile updated successfully." });
+});
 // This is the old DELETE endpoint, which is now replaced by the webhook-based one above.
 // I'm removing it to avoid confusion.
 // app.MapDelete("/users/{userId}", async ([FromServices] UserService userService, string userId) =>

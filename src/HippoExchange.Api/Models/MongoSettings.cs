@@ -1,4 +1,4 @@
-namespace HippoExchange.Models
+namespace HippoExchange.Api.Models
 {
     public class MongoSettings
     {

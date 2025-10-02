@@ -1,5 +1,6 @@
 using HippoExchange.Models;
 using Microsoft.Extensions.Options;
+using HippoExchange.Api.Models;
 using MongoDB.Driver;
 using System.Collections.Generic;
 using System.Threading.Tasks;

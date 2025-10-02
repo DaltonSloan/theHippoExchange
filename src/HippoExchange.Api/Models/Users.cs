@@ -2,6 +2,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.Text.Json.Serialization;
 using HippoExchange.Models.Clerk;
+using HippoExchange.Api.Models;
 using System.Collections.Generic;
 
 namespace HippoExchange.Models
