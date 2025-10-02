@@ -123,7 +123,7 @@ string? GetUserId(HttpContext ctx) =>
     ctx.Request.Headers.TryGetValue("X-User-Id", out var v) ? v.ToString() : null;
 
 // POST /api/assets - Add a new asset
-app.MapPost("/api/assets", async ([FromServices] AssetService assetService, HttpContext ctx, [FromBody] Asset newAsset) =>
+app.MapPost("/api/assets", async ([FromServices] AssetService assetService, HttpContext ctx, [FromBody] Assets newAsset) =>
 {
     var userId = GetUserId(ctx);
     if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
@@ -171,7 +171,7 @@ app.MapPatch("/users/{userId}", async ([FromServices] UserService userService, H
 });
 
 // PUT /api/assets/{assetId} - Replace (update) an asset
-app.MapPut("/api/assets/{assetId}", async ([FromServices] AssetService assetService, string assetId, Asset updatedAsset) =>
+app.MapPut("/api/assets/{assetId}", async ([FromServices] AssetService assetService, string assetId, Assets updatedAsset) =>
 {
     if (string.IsNullOrWhiteSpace(assetId))
         return Results.BadRequest("Asset ID cannot be empty.");
@@ -268,29 +268,6 @@ app.MapGet("/users/{userId}", async ([FromServices] UserService userService, str
 //     await userService.DeleteUserAsync(userId);
 //     return Results.NoContent();
 // });
-
-// PUT /api/emails/{clerkEmailId} - Update an email address
-app.MapPut("/api/emails/{clerkEmailId}", async (//defines the put endpoint using the url endpoint
-    [FromServices] EmailService emailService, //tells asp.net core to inject the EmailService method defined earlier
-    string clerkEmailId,//the string gotten from the url
-    [FromBody] string newAddress) =>//this will be the new email given to replace the old one
-{
-    if (string.IsNullOrWhiteSpace(clerkEmailId))//checks if the email given was in database
-        return Results.BadRequest("ClerkEmailId cannot be empty.");
-
-    if (string.IsNullOrWhiteSpace(newAddress))//checks if the given new email is valid
-        return Results.BadRequest("New address cannot be empty.");
-
-    try
-    {
-        await emailService.UpdateEmailAddress(clerkEmailId, newAddress);//calls the update email method in EmailService.cs
-        return Results.Ok(new { message = "Email updated successfully" });//returns ok if worked
-    }
-    catch (Exception ex)
-    {
-        return Results.NotFound(new { error = ex.Message });//if bad request return error message
-    }
-});
-     
+    
 
 app.Run();

@@ -5,7 +5,7 @@ using System;
 
 namespace HippoExchange.Models
 {
-    public class Asset
+    public class Assets
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
