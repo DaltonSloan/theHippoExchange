@@ -5,9 +5,17 @@ Quick reference for database seeding API endpoints.
 ## Endpoints Summary
 
 | Method | Endpoint | Description | Destructive? |
-|--------|----------|-------------|--------------|
+|--------|---------### Clean Up Demo Data
+```bash
+# Remove only demo data
+curl -X DELETE http://localhost:8080/api/admin/seed
+
+# Verify removal
+curl http://localhost:8080/api/admin/seed/status
+```
+
+## Testing with Demo Users-----------|
 | `POST` | `/api/admin/seed` | Seed database with demo data | No (only removes demo users) |
-| `POST` | `/api/admin/reset` | Reset entire database and re-seed | ⚠️ **YES** (deletes ALL data) |
 | `DELETE` | `/api/admin/seed` | Remove demo data only | No (only removes demo users) |
 | `GET` | `/api/admin/seed/status` | Check if demo data exists | No |
 
@@ -59,54 +67,7 @@ curl -X POST http://localhost:8080/api/admin/seed
 
 ---
 
-### 2. Reset and Re-Seed Database
-
-**Endpoint:** `POST /api/admin/reset`
-
-**Description:** ⚠️ **WARNING: This will DELETE ALL DATA in the database** and re-seed with demo data. Use with extreme caution! This operation cannot be undone.
-
-**Request:**
-```bash
-curl -X POST http://localhost:8080/api/admin/reset
-```
-
-**Response (200 OK):**
-```json
-{
-  "message": "Database reset and seeded successfully",
-  "warning": "All previous data has been deleted",
-  "demoUsers": [
-    {
-      "clerkId": "clerk_john_smith",
-      "name": "John Smith",
-      "persona": "Homeowner"
-    },
-    {
-      "clerkId": "clerk_jane_doe",
-      "name": "Jane Doe",
-      "persona": "Hobbyist"
-    },
-    {
-      "clerkId": "clerk_bob_builder",
-      "name": "Bob Builder",
-      "persona": "Contractor"
-    }
-  ]
-}
-```
-
-**Response (500 Error):**
-```json
-{
-  "title": "Reset failed",
-  "status": 500,
-  "detail": "Error message here"
-}
-```
-
----
-
-### 3. Remove Demo Data Only
+### 2. Remove Demo Data Only
 
 **Endpoint:** `DELETE /api/admin/seed`
 
@@ -140,7 +101,9 @@ curl -X DELETE http://localhost:8080/api/admin/seed
 
 ---
 
-### 4. Check Demo Data Status
+---
+
+### 3. Check Seed Status
 
 **Endpoint:** `GET /api/admin/seed/status`
 
@@ -263,7 +226,6 @@ curl http://localhost:8080/users
 
 - These endpoints are currently **not authenticated** - they should be secured in production
 - Consider adding authentication/authorization before deploying to production
-- The reset endpoint is particularly dangerous and should be restricted or removed in production
 - Log all seeding operations for audit purposes
 
 ## Future Enhancements

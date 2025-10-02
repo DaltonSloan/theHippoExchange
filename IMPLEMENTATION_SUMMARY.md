@@ -14,17 +14,15 @@
 ### 2. Command Line Interface
 - **Commands Added:**
   - `dotnet run seed` - Seed database with demo data
-  - `dotnet run reset` - Reset entire database and re-seed
 - **Integration:** Modified `Program.cs` to parse command-line arguments
 - **Environment:** Works in any environment (dev, staging, production)
 
 ### 3. REST API Endpoints
-Added 4 new admin endpoints for programmatic access:
+Added 3 new admin endpoints for programmatic access:
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/api/admin/seed` | POST | Seed database with demo data |
-| `/api/admin/reset` | POST | Reset entire database and re-seed |
 | `/api/admin/seed` | DELETE | Remove only demo data |
 | `/api/admin/seed/status` | GET | Check if demo data exists |
 
@@ -68,7 +66,6 @@ All acceptance criteria met:
 ✅ Script includes extensive comments  
 ✅ Works in any environment (not restricted to dev)  
 ✅ README documentation  
-✅ Optional reset command included  
 ✅ Three diverse demo users (homeowner, hobbyist, contractor)  
 
 ## 🆕 Additional Features Beyond Requirements
@@ -98,9 +95,6 @@ All acceptance criteria met:
 # Seed database
 cd /workspace/src/HippoExchange.Api
 dotnet run seed
-
-# Reset database
-dotnet run reset
 ```
 
 ### REST API
@@ -113,9 +107,6 @@ curl http://localhost:8080/api/admin/seed/status
 
 # Purge demo data
 curl -X DELETE http://localhost:8080/api/admin/seed
-
-# Reset database (dangerous!)
-curl -X POST http://localhost:8080/api/admin/reset
 ```
 
 ### Swagger UI
@@ -138,11 +129,9 @@ curl http://localhost:8080/users
 **Current State:**
 - Endpoints are NOT authenticated
 - Available to anyone with API access
-- Reset endpoint is particularly dangerous
 
 **Recommendations for Production:**
 - Add authentication/authorization to `/api/admin/*` endpoints
-- Consider removing reset endpoint in production
 - Add confirmation parameters for destructive operations
 - Implement rate limiting
 - Add audit logging for all admin operations

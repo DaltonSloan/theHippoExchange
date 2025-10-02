@@ -8,7 +8,7 @@ The HippoExchange application now includes a comprehensive database seeding feat
 
 ### ✅ Core Functionality
 
-- **Command-line seeding**: Run via `dotnet run seed` or `dotnet run reset`
+- **Command-line seeding**: Run via `dotnet run seed`
 - **Idempotent operations**: Running seed multiple times doesn't create duplicates
 - **Smart cleanup**: Only removes demo users (not all data) when re-seeding
 - **Comprehensive logging**: Clear console output showing what's being created
@@ -79,9 +79,6 @@ cd /workspace/src/HippoExchange.Api
 
 # Seed with demo data (removes existing demo users first)
 dotnet run seed
-
-# Reset entire database and re-seed (⚠️ DELETES ALL DATA)
-dotnet run reset
 ```
 
 ### API Endpoints
@@ -108,24 +105,7 @@ curl -X POST http://localhost:8080/api/admin/seed
 }
 ```
 
-#### 2. **Reset Database** - `POST /api/admin/reset`
-
-⚠️ **WARNING**: Deletes ALL data and re-seeds with demo data.
-
-```bash
-curl -X POST http://localhost:8080/api/admin/reset
-```
-
-**Response:**
-```json
-{
-  "message": "Database reset and seeded successfully",
-  "warning": "All previous data has been deleted",
-  "demoUsers": [...]
-}
-```
-
-#### 3. **Purge Demo Data** - `DELETE /api/admin/seed`
+#### 2. **Purge Demo Data** - `DELETE /api/admin/seed`
 
 Removes only the demo users and their associated data. Does not affect other data.
 
@@ -141,7 +121,7 @@ curl -X DELETE http://localhost:8080/api/admin/seed
 }
 ```
 
-#### 4. **Check Seed Status** - `GET /api/admin/seed/status`
+#### 3. **Check Seed Status** - `GET /api/admin/seed/status`
 
 Check if demo data exists in the database.
 
@@ -174,9 +154,6 @@ cd /workspace/src/HippoExchange.Api
 
 # Seed with demo data (removes existing demo users first)
 dotnet run seed
-
-# Reset entire database and re-seed (⚠️ DELETES ALL DATA)
-dotnet run reset
 ```
 
 ### Testing with Demo Users
@@ -257,7 +234,6 @@ curl http://localhost:8080/api/assets/{assetId}/maintenance
 ✅ Script includes detailed comments explaining data creation  
 ✅ Works in any environment (development/production)  
 ✅ README documentation explains how to run seed script  
-✅ Includes a "reset" command to clear and re-seed database  
 ✅ Three diverse demo users as specified (homeowner, hobbyist, contractor)  
 
 ## Statistics
@@ -299,11 +275,6 @@ docker-compose down && docker-compose up -d
 **Problem**: Clerk IDs already exist
 
 **Solution**: 
-```bash
-# Use reset instead of seed to clear everything
-dotnet run reset
-```
-
 ### No Data Visible in API
 
 **Problem**: Seeding completed but API returns empty results

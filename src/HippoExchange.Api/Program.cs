@@ -14,9 +14,8 @@ using Cowsay;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Check for seeding commands before building the application
+// Check for seeding command before building the application
 var shouldSeed = args.Contains("seed") || args.Contains("--seed");
-var shouldReset = args.Contains("reset") || args.Contains("--reset");
 
 builder.Services.AddCors(options =>
 {
@@ -98,23 +97,15 @@ builder.Services.AddSwaggerExamplesFromAssemblies(typeof(ClerkWebhookExample).As
 
 var app = builder.Build();
 
-// Handle database seeding commands
-if (shouldSeed || shouldReset)
+// Handle database seeding command
+if (shouldSeed)
 {
     var seeder = app.Services.GetRequiredService<DatabaseSeeder>();
     
     try
     {
-        if (shouldReset)
-        {
-            Console.WriteLine("🔄 Resetting database and seeding with demo data...\n");
-            await seeder.ResetDatabaseAsync();
-        }
-        else if (shouldSeed)
-        {
-            Console.WriteLine("🌱 Seeding database with demo data...\n");
-            await seeder.SeedDatabaseAsync();
-        }
+        Console.WriteLine("🌱 Seeding database with demo data...\n");
+        await seeder.SeedDatabaseAsync();
         
         Console.WriteLine("\n✨ Seeding completed successfully!");
         return; // Exit after seeding
@@ -329,36 +320,6 @@ app.MapPost("/api/admin/seed", async ([FromServices] DatabaseSeeder seeder) =>
     }
 })
 .WithName("SeedDatabase")
-.WithTags("Admin");
-
-// POST /api/admin/reset - Reset the entire database and re-seed
-app.MapPost("/api/admin/reset", async ([FromServices] DatabaseSeeder seeder) =>
-{
-    try
-    {
-        await seeder.ResetDatabaseAsync();
-        return Results.Ok(new 
-        { 
-            message = "Database reset and seeded successfully",
-            warning = "All previous data has been deleted",
-            demoUsers = new[]
-            {
-                new { clerkId = "user_33UeIDzYloCoZABaaCR1WPmV7MT", name = "John Smith", persona = "Homeowner" },
-                new { clerkId = "user_33UeKv6eNbmLb2HClHd1PN51AZ5", name = "Jane Doe", persona = "Hobbyist" },
-                new { clerkId = "user_33UeOCZ7LGxjHJ8dkwnAIozslO0", name = "Bob Builder", persona = "Contractor" }
-            }
-        });
-    }
-    catch (Exception ex)
-    {
-        return Results.Problem(
-            detail: ex.Message,
-            statusCode: 500,
-            title: "Reset failed"
-        );
-    }
-})
-.WithName("ResetDatabase")
 .WithTags("Admin");
 
 // DELETE /api/admin/seed - Remove only demo data
