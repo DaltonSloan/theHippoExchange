@@ -239,8 +239,8 @@ app.MapDelete("/assets/{assetId}", async ([FromServices] AssetService assetServi
     return success ? Results.NoContent() : Results.Problem("Delete failed.");
 });
 
-// GET /maintenance/by-asset/{assetId} - Get all maintenance for one asset
-app.MapGet("/maintenance/by-asset/{assetId}", async (
+// GET /assets/{assetId}/maintenance - Get all maintenance for one asset
+app.MapGet("/assets/{assetId}/maintenance", async (
     [FromServices] MaintenanceService maintenanceService,
     string assetId) =>
     {
