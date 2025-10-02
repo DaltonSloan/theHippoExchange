@@ -48,7 +48,7 @@ This project is set up to run in a containerized environment for easy developmen
 
 The application includes a database seeding feature to populate the database with realistic demo data for development and testing.
 
-### Seeding Commands
+### Command Line Seeding
 
 **Seed the database with demo data:**
 ```bash
@@ -61,6 +61,29 @@ dotnet run seed
 cd /workspace/src/HippoExchange.Api
 dotnet run reset
 ```
+
+### API Endpoints for Seeding
+
+You can also seed the database via API endpoints:
+
+- **`POST /api/admin/seed`** - Seed database with demo data (idempotent)
+- **`POST /api/admin/reset`** - ⚠️ Reset entire database and re-seed (deletes ALL data)
+- **`DELETE /api/admin/seed`** - Remove only demo data
+- **`GET /api/admin/seed/status`** - Check if demo data exists
+
+**Example:**
+```bash
+# Seed via API
+curl -X POST http://localhost:8080/api/admin/seed
+
+# Check status
+curl http://localhost:8080/api/admin/seed/status
+
+# Purge demo data
+curl -X DELETE http://localhost:8080/api/admin/seed
+```
+
+These endpoints are also available in Swagger UI under the "Admin" tag.
 
 ### Demo Data Overview
 
@@ -103,10 +126,10 @@ curl -H "X-User-Id: clerk_bob_builder" http://localhost:8080/api/assets
 ### Important Notes
 
 - **Seeding is idempotent**: Running the seed command multiple times will not create duplicates. Existing demo users are removed and recreated.
-- **Development only**: Seeding commands only work when `ASPNETCORE_ENVIRONMENT=Development` for safety.
 - **Reset vs Seed**: 
   - `seed` - Removes only demo data and creates fresh demo data
   - `reset` - ⚠️ **Deletes ALL data** in the database and creates fresh demo data
+- **⚠️ Use with caution**: Seeding commands work in any environment, so be careful when running in production.
 
 ## 🌐 Endpoints
 

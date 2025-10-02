@@ -77,7 +77,7 @@ namespace HippoExchange.Services
         /// Clears all demo data from the database. Identifies demo users by their
         /// Clerk IDs starting with "clerk_demo_" or specific known demo IDs.
         /// </summary>
-        private async Task ClearDemoDataAsync()
+        public async Task ClearDemoDataAsync()
         {
             Console.WriteLine("🧹 Clearing existing demo data...");
             

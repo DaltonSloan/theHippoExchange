@@ -98,8 +98,8 @@ builder.Services.AddSwaggerExamplesFromAssemblies(typeof(ClerkWebhookExample).As
 
 var app = builder.Build();
 
-// Handle database seeding commands (only in development for safety)
-if (builder.Environment.IsDevelopment() && (shouldSeed || shouldReset))
+// Handle database seeding commands
+if (shouldSeed || shouldReset)
 {
     var seeder = app.Services.GetRequiredService<DatabaseSeeder>();
     
@@ -125,12 +125,6 @@ if (builder.Environment.IsDevelopment() && (shouldSeed || shouldReset))
         Console.WriteLine(ex.StackTrace);
         return;
     }
-}
-else if (!builder.Environment.IsDevelopment() && (shouldSeed || shouldReset))
-{
-    Console.WriteLine("❌ Error: Database seeding is only available in Development environment for safety.");
-    Console.WriteLine("   To seed the database, ensure ASPNETCORE_ENVIRONMENT=Development");
-    return;
 }
 
 // If we're in a container in dev, we won't have the dev cert.
@@ -307,6 +301,113 @@ app.MapGet("/users/{userId}", async ([FromServices] UserService userService, str
 //     await userService.DeleteUserAsync(userId);
 //     return Results.NoContent();
 // });
+
+// POST /api/admin/seed - Seed the database with demo data
+app.MapPost("/api/admin/seed", async ([FromServices] DatabaseSeeder seeder) =>
+{
+    try
+    {
+        await seeder.SeedDatabaseAsync();
+        return Results.Ok(new 
+        { 
+            message = "Database seeded successfully",
+            demoUsers = new[]
+            {
+                new { clerkId = "clerk_john_smith", name = "John Smith", persona = "Homeowner" },
+                new { clerkId = "clerk_jane_doe", name = "Jane Doe", persona = "Hobbyist" },
+                new { clerkId = "clerk_bob_builder", name = "Bob Builder", persona = "Contractor" }
+            }
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(
+            detail: ex.Message,
+            statusCode: 500,
+            title: "Seeding failed"
+        );
+    }
+})
+.WithName("SeedDatabase")
+.WithTags("Admin");
+
+// POST /api/admin/reset - Reset the entire database and re-seed
+app.MapPost("/api/admin/reset", async ([FromServices] DatabaseSeeder seeder) =>
+{
+    try
+    {
+        await seeder.ResetDatabaseAsync();
+        return Results.Ok(new 
+        { 
+            message = "Database reset and seeded successfully",
+            warning = "All previous data has been deleted",
+            demoUsers = new[]
+            {
+                new { clerkId = "clerk_john_smith", name = "John Smith", persona = "Homeowner" },
+                new { clerkId = "clerk_jane_doe", name = "Jane Doe", persona = "Hobbyist" },
+                new { clerkId = "clerk_bob_builder", name = "Bob Builder", persona = "Contractor" }
+            }
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(
+            detail: ex.Message,
+            statusCode: 500,
+            title: "Reset failed"
+        );
+    }
+})
+.WithName("ResetDatabase")
+.WithTags("Admin");
+
+// DELETE /api/admin/seed - Remove only demo data
+app.MapDelete("/api/admin/seed", async ([FromServices] DatabaseSeeder seeder) =>
+{
+    try
+    {
+        await seeder.ClearDemoDataAsync();
+        
+        return Results.Ok(new 
+        { 
+            message = "Demo data removed successfully",
+            removedUsers = new[] { "clerk_john_smith", "clerk_jane_doe", "clerk_bob_builder" }
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(
+            detail: ex.Message,
+            statusCode: 500,
+            title: "Purge failed"
+        );
+    }
+})
+.WithName("PurgeDemoData")
+.WithTags("Admin");
+
+// GET /api/admin/seed/status - Check if demo data exists
+app.MapGet("/api/admin/seed/status", async ([FromServices] UserService userService) =>
+{
+    var demoClerkIds = new[] { "clerk_john_smith", "clerk_jane_doe", "clerk_bob_builder" };
+    var users = await userService.GetAllUsersAsync();
+    var demoUsers = users.Where(u => demoClerkIds.Contains(u.ClerkId)).ToList();
+    
+    return Results.Ok(new
+    {
+        hasDemoData = demoUsers.Any(),
+        demoUserCount = demoUsers.Count,
+        demoUsers = demoUsers.Select(u => new
+        {
+            clerkId = u.ClerkId,
+            name = u.FullName,
+            email = u.Email,
+            assetCount = u.Statistics.TotalAssets
+        })
+    });
+})
+.WithName("GetSeedStatus")
+.WithTags("Admin");
     
 
 app.Run();
