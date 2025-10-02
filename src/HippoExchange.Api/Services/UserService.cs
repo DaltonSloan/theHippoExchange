@@ -75,6 +75,16 @@ namespace HippoExchange.Services
 
             if (updateRequest.PhoneNumber is not null)
                 updates.Add(Builders<User>.Update.Set(u => u.PhoneNumber, updateRequest.PhoneNumber));
+            // TODO Remove username and email calls for backend, this will be handled by clerk
+            if (updateRequest.Email is not null)
+            {
+                updates.Add(Builders<User>.Update.Set(u => u.Email, updateRequest.Email));
+                // Keep ContactInformation.Email in sync when provided
+                updates.Add(Builders<User>.Update.Set(u => u.ContactInformation.Email, updateRequest.Email));
+            }
+
+            if (updateRequest.Username is not null)
+                updates.Add(Builders<User>.Update.Set(u => u.Username, updateRequest.Username));
 
             if (updateRequest.FirstName is not null)
                 updates.Add(Builders<User>.Update.Set(u => u.FirstName, updateRequest.FirstName));
