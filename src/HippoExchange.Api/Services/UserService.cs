@@ -54,7 +54,9 @@ namespace HippoExchange.Services
             var filter = Builders<User>.Filter.Eq(u => u.ClerkId, clerkId);
             var update = Builders<User>.Update
                 .Set(u => u.PhoneNumber, updateRequest.PhoneNumber)
-                .Set(u => u.Address, updateRequest.Address);
+                .Set(u => u.Address, updateRequest.Address)
+                .Set(u => u.FirstName, updateRequest.FirstName)
+                .Set(u => u.LastName, updateRequest.LastName);
 
             var result = await _usersCollection.UpdateOneAsync(filter, update);
             return result.IsAcknowledged;
