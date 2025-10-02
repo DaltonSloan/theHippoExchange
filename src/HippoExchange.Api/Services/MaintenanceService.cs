@@ -29,6 +29,12 @@ namespace HippoExchange.Services
         public async Task<List<Maintenance>> GetMaintenanceByAssetIdAsync(string assetId) =>
             await _maintenanceCollection.Find(m => m.AssetId == assetId).ToListAsync();
 
+        public async Task<List<Maintenance>> GetMaintenanceByAssetIdsAsync(IEnumerable<string> assetIds)
+        {
+            var filter = Builders<Maintenance>.Filter.In(m => m.AssetId, assetIds);
+            return await _maintenanceCollection.Find(filter).ToListAsync();
+        }
+
         // Get a single maintenance record by ID
         public async Task<Maintenance?> GetMaintenanceByIdAsync(string maintenanceId) =>
             await _maintenanceCollection.Find(m => m.Id == maintenanceId).FirstOrDefaultAsync();

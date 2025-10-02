@@ -248,11 +248,27 @@ app.MapGet("/assets/{assetId}/maintenance", async (
         return Results.Ok(records);
     });
 
-// GET /maintenance - Get all maintenance records
-app.MapGet("/maintenace", async (
-    [FromServices] MaintenanceService maintenanceService) =>
+// GET /maintenance - Get all maintenance records for the current user
+app.MapGet("/maintenance", async (
+    [FromServices] MaintenanceService maintenanceService,
+    [FromServices] AssetService assetService,
+    HttpContext ctx) =>
     {
-        var records = await maintenanceService.GetAllMaintenanceAsync();
+        var userId = GetUserId(ctx);
+        if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
+
+        // Get all assets for the user
+        var userAssets = await assetService.GetAssetsByOwnerIdAsync(userId);
+        if (!userAssets.Any())
+        {
+            return Results.Ok(new List<Maintenance>()); // Return empty list if user has no assets
+        }
+
+        // Get all asset IDs
+        var assetIds = userAssets.Select(a => a.Id);
+
+        // Fetch all maintenance records for those asset IDs in a single query
+        var records = await maintenanceService.GetMaintenanceByAssetIdsAsync(assetIds!);
         return Results.Ok(records);
     });
 
