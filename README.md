@@ -56,18 +56,11 @@ cd /workspace/src/HippoExchange.Api
 dotnet run seed
 ```
 
-**Reset and re-seed the database (⚠️ WARNING: Deletes ALL data):**
-```bash
-cd /workspace/src/HippoExchange.Api
-dotnet run reset
-```
-
 ### API Endpoints for Seeding
 
 You can also seed the database via API endpoints:
 
 - **`POST /api/admin/seed`** - Seed database with demo data (idempotent)
-- **`POST /api/admin/reset`** - ⚠️ Reset entire database and re-seed (deletes ALL data)
 - **`DELETE /api/admin/seed`** - Remove only demo data
 - **`GET /api/admin/seed/status`** - Check if demo data exists
 
@@ -131,9 +124,6 @@ curl -H "X-User-Id: user_33UeOCZ7LGxjHJ8dkwnAIozslO0" http://localhost:8080/api/
 ### Important Notes
 
 - **Seeding is idempotent**: Running the seed command multiple times will not create duplicates. Existing demo users are removed and recreated.
-- **Reset vs Seed**: 
-  - `seed` - Removes only demo data and creates fresh demo data
-  - `reset` - ⚠️ **Deletes ALL data** in the database and creates fresh demo data
 - **⚠️ Use with caution**: Seeding commands work in any environment, so be careful when running in production.
 
 ## 🌐 Endpoints

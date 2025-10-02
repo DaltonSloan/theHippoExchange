@@ -947,24 +947,6 @@ namespace HippoExchange.Services
         }
 
         /// <summary>
-        /// Completely resets the database by dropping all collections and recreating them.
-        /// USE WITH CAUTION - This will delete ALL data, not just demo data.
-        /// </summary>
-        public async Task ResetDatabaseAsync()
-        {
-            Console.WriteLine("⚠️  WARNING: Resetting entire database...");
-            
-            await _usersCollection.Database.DropCollectionAsync("users");
-            await _assetsCollection.Database.DropCollectionAsync("assets");
-            await _maintenanceCollection.Database.DropCollectionAsync("maintenance");
-            
-            Console.WriteLine("✅ Database reset complete");
-            Console.WriteLine("🌱 Now seeding with fresh demo data...\n");
-            
-            await SeedDatabaseAsync();
-        }
-
-        /// <summary>
         /// Helper class to represent maintenance tasks with their details.
         /// </summary>
         private class MaintenanceTask
