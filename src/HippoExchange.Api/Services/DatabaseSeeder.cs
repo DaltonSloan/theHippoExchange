@@ -67,9 +67,9 @@ namespace HippoExchange.Services
             Console.WriteLine($"   - {users.Count} demo users");
             Console.WriteLine($"   - {assetCount} total assets");
             Console.WriteLine($"\nDemo User Credentials:");
-            Console.WriteLine("   User 1: clerk_john_smith (John Smith - Homeowner)");
-            Console.WriteLine("   User 2: clerk_jane_doe (Jane Doe - Hobbyist)");
-            Console.WriteLine("   User 3: clerk_bob_builder (Bob Builder - Contractor)");
+            Console.WriteLine("   User 1: user_33UeIDzYloCoZABaaCR1WPmV7MT (John Smith - Homeowner)");
+            Console.WriteLine("   User 2: user_33UeKv6eNbmLb2HClHd1PN51AZ5 (Jane Doe - Hobbyist)");
+            Console.WriteLine("   User 3: user_33UeOCZ7LGxjHJ8dkwnAIozslO0 (Bob Builder - Contractor)");
             Console.WriteLine("\nUse these Clerk IDs in the X-User-Id header for API testing.");
         }
 
@@ -81,7 +81,11 @@ namespace HippoExchange.Services
         {
             Console.WriteLine("🧹 Clearing existing demo data...");
             
-            var demoClerkIds = new[] { "clerk_john_smith", "clerk_jane_doe", "clerk_bob_builder" };
+            var demoClerkIds = new[] { 
+                "user_33UeIDzYloCoZABaaCR1WPmV7MT",  // john_smith
+                "user_33UeKv6eNbmLb2HClHd1PN51AZ5",  // jane_doe
+                "user_33UeOCZ7LGxjHJ8dkwnAIozslO0"   // bob_builder
+            };
             
             // Find demo users
             var demoUsers = await _usersCollection
@@ -126,18 +130,18 @@ namespace HippoExchange.Services
                 // User 1: John Smith - Homeowner
                 new User
                 {
-                    ClerkId = "clerk_john_smith",
+                    ClerkId = "user_33UeIDzYloCoZABaaCR1WPmV7MT",
                     Email = "john.smith@demo.hippoexchange.com",
                     Username = "john_smith",
                     FirstName = "John",
                     LastName = "Smith",
                     FullName = "John Smith",
-                    ProfileImageUrl = "https://api.dicebear.com/7.x/avataaars/svg?seed=John",
+                    ProfileImageUrl = "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18zMkNBNVUxTHJxc1Y2amVqcFBGVmIwZTBVTlYiLCJyaWQiOiJ1c2VyXzMzVWVJRHpZbG9Db1pBQmFhQ1IxV1BtVjdNVCIsImluaXRpYWxzIjoiSlMifQ",
                     Location = "Springfield, IL",
                     PhoneNumber = "+1-555-0101",
-                    ImageUrl = "https://api.dicebear.com/7.x/avataaars/svg?seed=John",
-                    HasImage = true,
-                    PrimaryEmailAddressId = "email_john_primary",
+                    ImageUrl = "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18zMkNBNVUxTHJxc1Y2amVqcFBGVmIwZTBVTlYiLCJyaWQiOiJ1c2VyXzMzVWVJRHpZbG9Db1pBQmFhQ1IxV1BtVjdNVCIsImluaXRpYWxzIjoiSlMifQ",
+                    HasImage = false,
+                    PrimaryEmailAddressId = "idn_33UeI8ZFWT796TFQuscbvSCXayJ",
                     LastSignInAt = DateTimeOffset.UtcNow.AddDays(-1).ToUnixTimeMilliseconds(),
                     UpdatedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                     Address = new Address
@@ -171,9 +175,9 @@ namespace HippoExchange.Services
                     {
                         new ClerkEmailAddress
                         {
-                            Id = "email_john_primary",
+                            Id = "idn_33UeI8ZFWT796TFQuscbvSCXayJ",
                             EmailAddress = "john.smith@demo.hippoexchange.com",
-                            Verification = new ClerkVerification { Status = "verified" }
+                            Verification = new ClerkVerification { Status = "verified", Strategy = "admin" }
                         }
                     }
                 },
@@ -181,18 +185,18 @@ namespace HippoExchange.Services
                 // User 2: Jane Doe - Hobbyist
                 new User
                 {
-                    ClerkId = "clerk_jane_doe",
+                    ClerkId = "user_33UeKv6eNbmLb2HClHd1PN51AZ5",
                     Email = "jane.doe@demo.hippoexchange.com",
                     Username = "jane_doe",
                     FirstName = "Jane",
                     LastName = "Doe",
                     FullName = "Jane Doe",
-                    ProfileImageUrl = "https://api.dicebear.com/7.x/avataaars/svg?seed=Jane",
+                    ProfileImageUrl = "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18zMkNBNVUxTHJxc1Y2amVqcFBGVmIwZTBVTlYiLCJyaWQiOiJ1c2VyXzMzVWVLdjZlTmJtTGIySENsSGQxUE41MUFaNSIsImluaXRpYWxzIjoiSkQifQ",
                     Location = "Portland, OR",
                     PhoneNumber = "+1-555-0102",
-                    ImageUrl = "https://api.dicebear.com/7.x/avataaars/svg?seed=Jane",
-                    HasImage = true,
-                    PrimaryEmailAddressId = "email_jane_primary",
+                    ImageUrl = "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18zMkNBNVUxTHJxc1Y2amVqcFBGVmIwZTBVTlYiLCJyaWQiOiJ1c2VyXzMzVWVLdjZlTmJtTGIySENsSGQxUE41MUFaNSIsImluaXRpYWxzIjoiSkQifQ",
+                    HasImage = false,
+                    PrimaryEmailAddressId = "idn_33UeKuwQnPVVaByJV4qZu4DXnuQ",
                     LastSignInAt = DateTimeOffset.UtcNow.AddHours(-6).ToUnixTimeMilliseconds(),
                     UpdatedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                     Address = new Address
@@ -226,9 +230,9 @@ namespace HippoExchange.Services
                     {
                         new ClerkEmailAddress
                         {
-                            Id = "email_jane_primary",
+                            Id = "idn_33UeKuwQnPVVaByJV4qZu4DXnuQ",
                             EmailAddress = "jane.doe@demo.hippoexchange.com",
-                            Verification = new ClerkVerification { Status = "verified" }
+                            Verification = new ClerkVerification { Status = "verified", Strategy = "admin" }
                         }
                     }
                 },
@@ -236,18 +240,18 @@ namespace HippoExchange.Services
                 // User 3: Bob Builder - Contractor
                 new User
                 {
-                    ClerkId = "clerk_bob_builder",
+                    ClerkId = "user_33UeOCZ7LGxjHJ8dkwnAIozslO0",
                     Email = "bob.builder@demo.hippoexchange.com",
                     Username = "bob_builder",
                     FirstName = "Bob",
                     LastName = "Builder",
                     FullName = "Bob Builder",
-                    ProfileImageUrl = "https://api.dicebear.com/7.x/avataaars/svg?seed=Bob",
+                    ProfileImageUrl = "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18zMkNBNVUxTHJxc1Y2amVqcFBGVmIwZTBVTlYiLCJyaWQiOiJ1c2VyXzMzVWVPQ1o3TEd4akhKOGRrd25BSW96c2xPMCIsImluaXRpYWxzIjoiQkIifQ",
                     Location = "Austin, TX",
                     PhoneNumber = "+1-555-0103",
-                    ImageUrl = "https://api.dicebear.com/7.x/avataaars/svg?seed=Bob",
-                    HasImage = true,
-                    PrimaryEmailAddressId = "email_bob_primary",
+                    ImageUrl = "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18zMkNBNVUxTHJxc1Y2amVqcFBGVmIwZTBVTlYiLCJyaWQiOiJ1c2VyXzMzVWVPQ1o3TEd4akhKOGRrd25BSW96c2xPMCIsImluaXRpYWxzIjoiQkIifQ",
+                    HasImage = false,
+                    PrimaryEmailAddressId = "idn_33UeOAgYquzo8uNfv9risd0VOmO",
                     LastSignInAt = DateTimeOffset.UtcNow.AddMinutes(-30).ToUnixTimeMilliseconds(),
                     UpdatedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                     Address = new Address
@@ -281,9 +285,9 @@ namespace HippoExchange.Services
                     {
                         new ClerkEmailAddress
                         {
-                            Id = "email_bob_primary",
+                            Id = "idn_33UeOAgYquzo8uNfv9risd0VOmO",
                             EmailAddress = "bob.builder@demo.hippoexchange.com",
-                            Verification = new ClerkVerification { Status = "verified" }
+                            Verification = new ClerkVerification { Status = "verified", Strategy = "admin" }
                         }
                     }
                 }
@@ -303,7 +307,7 @@ namespace HippoExchange.Services
             
             switch (user.ClerkId)
             {
-                case "clerk_john_smith":
+                case "user_33UeIDzYloCoZABaaCR1WPmV7MT":  // john_smith
                     // Homeowner with lawn/garden equipment
                     assets = new List<Assets>
                     {
@@ -408,7 +412,7 @@ namespace HippoExchange.Services
                     };
                     break;
                     
-                case "clerk_jane_doe":
+                case "user_33UeKv6eNbmLb2HClHd1PN51AZ5":  // jane_doe
                     // Hobbyist with workshop tools
                     assets = new List<Assets>
                     {
@@ -541,7 +545,7 @@ namespace HippoExchange.Services
                     };
                     break;
                     
-                case "clerk_bob_builder":
+                case "user_33UeOCZ7LGxjHJ8dkwnAIozslO0":  // bob_builder
                     // Contractor with professional equipment
                     assets = new List<Assets>
                     {

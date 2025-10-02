@@ -114,14 +114,19 @@ To test API endpoints with demo users, use their Clerk IDs in the `X-User-Id` he
 
 ```bash
 # Example: Get assets for John Smith
-curl -H "X-User-Id: clerk_john_smith" http://localhost:8080/api/assets
+curl -H "X-User-Id: user_33UeIDzYloCoZABaaCR1WPmV7MT" http://localhost:8080/api/assets
 
 # Example: Get assets for Jane Doe
-curl -H "X-User-Id: clerk_jane_doe" http://localhost:8080/api/assets
+curl -H "X-User-Id: user_33UeKv6eNbmLb2HClHd1PN51AZ5" http://localhost:8080/api/assets
 
 # Example: Get assets for Bob Builder
-curl -H "X-User-Id: clerk_bob_builder" http://localhost:8080/api/assets
+curl -H "X-User-Id: user_33UeOCZ7LGxjHJ8dkwnAIozslO0" http://localhost:8080/api/assets
 ```
+
+**Demo User Clerk IDs:**
+- John Smith (Homeowner): `user_33UeIDzYloCoZABaaCR1WPmV7MT`
+- Jane Doe (Hobbyist): `user_33UeKv6eNbmLb2HClHd1PN51AZ5`
+- Bob Builder (Contractor): `user_33UeOCZ7LGxjHJ8dkwnAIozslO0`
 
 ### Important Notes
 

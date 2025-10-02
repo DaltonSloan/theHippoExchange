@@ -313,9 +313,9 @@ app.MapPost("/api/admin/seed", async ([FromServices] DatabaseSeeder seeder) =>
             message = "Database seeded successfully",
             demoUsers = new[]
             {
-                new { clerkId = "clerk_john_smith", name = "John Smith", persona = "Homeowner" },
-                new { clerkId = "clerk_jane_doe", name = "Jane Doe", persona = "Hobbyist" },
-                new { clerkId = "clerk_bob_builder", name = "Bob Builder", persona = "Contractor" }
+                new { clerkId = "user_33UeIDzYloCoZABaaCR1WPmV7MT", name = "John Smith", persona = "Homeowner" },
+                new { clerkId = "user_33UeKv6eNbmLb2HClHd1PN51AZ5", name = "Jane Doe", persona = "Hobbyist" },
+                new { clerkId = "user_33UeOCZ7LGxjHJ8dkwnAIozslO0", name = "Bob Builder", persona = "Contractor" }
             }
         });
     }
@@ -343,9 +343,9 @@ app.MapPost("/api/admin/reset", async ([FromServices] DatabaseSeeder seeder) =>
             warning = "All previous data has been deleted",
             demoUsers = new[]
             {
-                new { clerkId = "clerk_john_smith", name = "John Smith", persona = "Homeowner" },
-                new { clerkId = "clerk_jane_doe", name = "Jane Doe", persona = "Hobbyist" },
-                new { clerkId = "clerk_bob_builder", name = "Bob Builder", persona = "Contractor" }
+                new { clerkId = "user_33UeIDzYloCoZABaaCR1WPmV7MT", name = "John Smith", persona = "Homeowner" },
+                new { clerkId = "user_33UeKv6eNbmLb2HClHd1PN51AZ5", name = "Jane Doe", persona = "Hobbyist" },
+                new { clerkId = "user_33UeOCZ7LGxjHJ8dkwnAIozslO0", name = "Bob Builder", persona = "Contractor" }
             }
         });
     }
@@ -371,7 +371,11 @@ app.MapDelete("/api/admin/seed", async ([FromServices] DatabaseSeeder seeder) =>
         return Results.Ok(new 
         { 
             message = "Demo data removed successfully",
-            removedUsers = new[] { "clerk_john_smith", "clerk_jane_doe", "clerk_bob_builder" }
+            removedUsers = new[] { 
+                "user_33UeIDzYloCoZABaaCR1WPmV7MT",  // john_smith
+                "user_33UeKv6eNbmLb2HClHd1PN51AZ5",  // jane_doe
+                "user_33UeOCZ7LGxjHJ8dkwnAIozslO0"   // bob_builder
+            }
         });
     }
     catch (Exception ex)
@@ -389,7 +393,11 @@ app.MapDelete("/api/admin/seed", async ([FromServices] DatabaseSeeder seeder) =>
 // GET /api/admin/seed/status - Check if demo data exists
 app.MapGet("/api/admin/seed/status", async ([FromServices] UserService userService) =>
 {
-    var demoClerkIds = new[] { "clerk_john_smith", "clerk_jane_doe", "clerk_bob_builder" };
+    var demoClerkIds = new[] { 
+        "user_33UeIDzYloCoZABaaCR1WPmV7MT",  // john_smith
+        "user_33UeKv6eNbmLb2HClHd1PN51AZ5",  // jane_doe
+        "user_33UeOCZ7LGxjHJ8dkwnAIozslO0"   // bob_builder
+    };
     var users = await userService.GetAllUsersAsync();
     var demoUsers = users.Where(u => demoClerkIds.Contains(u.ClerkId)).ToList();
     
