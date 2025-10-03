@@ -265,10 +265,12 @@ app.MapGet("/maintenance", async (
         }
 
         // Get all asset IDs, filtering out any that might be null or empty
-        var assetIds = userAssets.Select(a => a.Id).Where(id => !string.IsNullOrEmpty(id));
+        var assetIds = userAssets.Select(a => a.Id)
+                                 .Where(id => !string.IsNullOrEmpty(id))
+                                 .Select(id => id!); // Cast to non-nullable string
 
         // Fetch all maintenance records for those asset IDs in a single query
-        var records = await maintenanceService.GetMaintenanceByAssetIdsAsync(assetIds!);
+        var records = await maintenanceService.GetMaintenanceByAssetIdsAsync(assetIds);
         return Results.Ok(records);
     });
 
