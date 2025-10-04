@@ -8,10 +8,12 @@ using HippoExchange.Api.Models;
 using HippoExchange.Models.Clerk;
 using System.Text.Json;
 using Google.Cloud.SecretManager.V1;
-using Microsoft.Extensions.Options;
 using Figgle;
 using Figgle.Fonts;
 using Cowsay;
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
+using Microsoft.AspNetCore.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,29 +34,7 @@ builder.Services.AddCors(options =>
 builder.WebHost.UseUrls("http://*:8080");
 
 
-// If not in development, fetch the connection string from Google Secret Manager
-if (!builder.Environment.IsDevelopment())
-{
-    try
-    {
-        const string projectId = "thehippoexchange-471003";
-        const string secretId = "MONGO_CONNECTION_STRING";
-        const string secretVersion = "latest";
 
-        var client = SecretManagerServiceClient.Create();
-        var secretVersionName = new SecretVersionName(projectId, secretId, secretVersion);
-        var result = client.AccessSecretVersion(secretVersionName);
-        var connectionString = result.Payload.Data.ToStringUtf8();
-
-        builder.Configuration["Mongo:ConnectionString"] = connectionString;
-    }
-    catch (Exception ex)
-    {
-        // Log the exception and rethrow it to ensure the application fails to start.
-        Console.WriteLine($"Error fetching secret from Google Secret Manager: {ex.Message}");
-        throw;
-    }
-}
 
 // Configure JSON options to handle camelCase from clients
 builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
@@ -68,6 +48,19 @@ builder.Services.AddSingleton<UserService>();
 builder.Services.AddSingleton<AssetService>();
 builder.Services.AddSingleton<MaintenanceService>();
 builder.Services.AddSingleton<DatabaseSeeder>();
+
+// Bind and register Cloudinary settings
+builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("Cloudinary"));
+builder.Services.AddSingleton(sp =>
+{
+    var settings = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<CloudinarySettings>>().Value;
+    if (string.IsNullOrEmpty(settings.CloudName) || string.IsNullOrEmpty(settings.ApiKey) || string.IsNullOrEmpty(settings.ApiSecret))
+    {
+        // This will help diagnose configuration issues on startup.
+        throw new ArgumentException("Cloudinary settings are not configured. Please check your secrets or appsettings.json.");
+    }
+    return new Cloudinary(new Account(settings.CloudName, settings.ApiKey, settings.ApiSecret));
+});
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -238,6 +231,33 @@ app.MapDelete("/assets/{assetId}", async ([FromServices] AssetService assetServi
     var success = await assetService.DeleteAsset(assetId);
     return success ? Results.NoContent() : Results.Problem("Delete failed.");
 });
+
+// POST /assets/upload-image - Upload an image and get a URL
+app.MapPost("/assets/upload-image", async (IFormFile file, [FromServices] Cloudinary cloudinary) =>
+{
+    if (file == null || file.Length == 0)
+    {
+        return Results.BadRequest("No file uploaded.");
+    }
+
+    await using var stream = file.OpenReadStream();
+    var uploadParams = new ImageUploadParams()
+    {
+        File = new FileDescription(file.FileName, stream),
+        // Optional: You can add transformations or specify a folder
+        // Folder = "hippo-exchange-assets"
+    };
+
+    var uploadResult = await cloudinary.UploadAsync(uploadParams);
+
+    if (uploadResult.Error != null)
+    {
+        return Results.Problem($"Image upload failed: {uploadResult.Error.Message}");
+    }
+
+    return Results.Ok(new { url = uploadResult.SecureUrl.ToString() });
+})
+.DisableAntiforgery(); // Necessary for file uploads from non-form sources
 
 // GET /assets/{assetId}/maintenance - Get all maintenance for one asset
 app.MapGet("/assets/{assetId}/maintenance", async (
@@ -538,3 +558,10 @@ app.MapGet("/api/admin/seed/status", async ([FromServices] UserService userServi
     
 
 app.Run();
+
+public class CloudinarySettings
+{
+    public string CloudName { get; set; } = string.Empty;
+    public string ApiKey { get; set; } = string.Empty;
+    public string ApiSecret { get; set; } = string.Empty;
+}
