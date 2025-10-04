@@ -36,6 +36,30 @@ builder.WebHost.UseUrls("http://*:8080");
 
 
 
+// If not in development, fetch secrets from Google Secret Manager
+if (!builder.Environment.IsDevelopment())
+{
+    try
+    {
+        var client = SecretManagerServiceClient.Create();
+
+        // Fetch Mongo Connection String
+        var mongoSecretVersionName = new SecretVersionName("thehippoexchange-471003", "MONGO_CONNECTION_STRING", "latest");
+        var mongoResult = client.AccessSecretVersion(mongoSecretVersionName);
+        builder.Configuration["Mongo:ConnectionString"] = mongoResult.Payload.Data.ToStringUtf8();
+
+        // Fetch Cloudinary URL
+        var cloudinarySecretVersionName = new SecretVersionName("thehippoexchange-471003", "CLOUDINARY_URL", "latest");
+        var cloudinaryResult = client.AccessSecretVersion(cloudinarySecretVersionName);
+        builder.Configuration["CLOUDINARY_URL"] = cloudinaryResult.Payload.Data.ToStringUtf8();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error fetching secrets from Google Secret Manager: {ex.Message}");
+        throw;
+    }
+}
+
 // Configure JSON options to handle camelCase from clients
 builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
 {
@@ -49,18 +73,14 @@ builder.Services.AddSingleton<AssetService>();
 builder.Services.AddSingleton<MaintenanceService>();
 builder.Services.AddSingleton<DatabaseSeeder>();
 
-// Bind and register Cloudinary settings
-builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("Cloudinary"));
-builder.Services.AddSingleton(sp =>
+// Bind and register Cloudinary settings from URL
+var cloudinaryUrl = builder.Configuration["CLOUDINARY_URL"];
+if (string.IsNullOrEmpty(cloudinaryUrl))
 {
-    var settings = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<CloudinarySettings>>().Value;
-    if (string.IsNullOrEmpty(settings.CloudName) || string.IsNullOrEmpty(settings.ApiKey) || string.IsNullOrEmpty(settings.ApiSecret))
-    {
-        // This will help diagnose configuration issues on startup.
-        throw new ArgumentException("Cloudinary settings are not configured. Please check your secrets or appsettings.json.");
-    }
-    return new Cloudinary(new Account(settings.CloudName, settings.ApiKey, settings.ApiSecret));
-});
+    // This will help diagnose configuration issues on startup.
+    throw new ArgumentException("CLOUDINARY_URL is not configured. Please check your secrets or appsettings.json.");
+}
+builder.Services.AddSingleton(new Cloudinary(cloudinaryUrl));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -558,10 +578,3 @@ app.MapGet("/api/admin/seed/status", async ([FromServices] UserService userServi
     
 
 app.Run();
-
-public class CloudinarySettings
-{
-    public string CloudName { get; set; } = string.Empty;
-    public string ApiKey { get; set; } = string.Empty;
-    public string ApiSecret { get; set; } = string.Empty;
-}
