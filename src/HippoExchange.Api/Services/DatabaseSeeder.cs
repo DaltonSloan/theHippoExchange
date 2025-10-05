@@ -34,17 +34,22 @@ namespace HippoExchange.Api.Services
         /// Seeds the database with demo data. This operation is idempotent - running it
         /// multiple times will not create duplicates. Existing demo users will be removed
         /// and recreated.
+        /// 
+        /// Creates both PRODUCTION and DEVELOPMENT versions of demo users to support
+        /// testing in different Clerk environments. Use the appropriate Clerk ID based
+        /// on your current environment.
         /// </summary>
         public async Task SeedDatabaseAsync()
         {
             Console.WriteLine("🌱 Starting database seeding...");
+            Console.WriteLine("   Creating users for BOTH Production and Development Clerk environments\n");
             
             // Clear existing demo data
             await ClearDemoDataAsync();
             
             // Create demo users
             var users = await CreateDemoUsersAsync();
-            Console.WriteLine($"✅ Created {users.Count} demo users");
+            Console.WriteLine($"✅ Created {users.Count} demo users (3 PROD + 3 DEV)");
             
             // Create assets for each user
             var assetCount = 0;
@@ -52,7 +57,7 @@ namespace HippoExchange.Api.Services
             {
                 var assets = await CreateDemoAssetsForUserAsync(user);
                 assetCount += assets.Count;
-                Console.WriteLine($"✅ Created {assets.Count} assets for {user.FirstName} {user.LastName}");
+                Console.WriteLine($"✅ Created {assets.Count} assets for {user.FirstName} {user.LastName} ({GetEnvironmentLabel(user.ClerkId)})");
                 
                 // Create maintenance records for each asset
                 var maintenanceCount = 0;
@@ -61,31 +66,53 @@ namespace HippoExchange.Api.Services
                     var maintenanceRecords = await CreateDemoMaintenanceForAssetAsync(asset);
                     maintenanceCount += maintenanceRecords.Count;
                 }
-                Console.WriteLine($"✅ Created {maintenanceCount} maintenance records for {user.FirstName}'s assets");
+                Console.WriteLine($"✅ Created {maintenanceCount} maintenance records for {user.FirstName}'s assets ({GetEnvironmentLabel(user.ClerkId)})");
             }
             
             Console.WriteLine($"\n🎉 Database seeding complete!");
-            Console.WriteLine($"   - {users.Count} demo users");
+            Console.WriteLine($"   - {users.Count} demo users (3 PROD + 3 DEV)");
             Console.WriteLine($"   - {assetCount} total assets");
-            Console.WriteLine($"\nDemo User Credentials:");
-            Console.WriteLine("   User 1: user_33UeIDzYloCoZABaaCR1WPmV7MT (John Smith - Homeowner)");
-            Console.WriteLine("   User 2: user_33UeKv6eNbmLb2HClHd1PN51AZ5 (Jane Doe - Hobbyist)");
-            Console.WriteLine("   User 3: user_33UeOCZ7LGxjHJ8dkwnAIozslO0 (Bob Builder - Contractor)");
-            Console.WriteLine("\nUse these Clerk IDs in the X-User-Id header for API testing.");
+            Console.WriteLine($"\n📋 Demo User Clerk IDs:");
+            Console.WriteLine($"\n   PRODUCTION Environment:");
+            Console.WriteLine($"   • John Smith (Homeowner):  user_33UeIDzYloCoZABaaCR1WPmV7MT");
+            Console.WriteLine($"   • Jane Doe (Hobbyist):     user_33UeKv6eNbmLb2HClHd1PN51AZ5");
+            Console.WriteLine($"   • Bob Builder (Contractor): user_33UeOCZ7LGxjHJ8dkwnAIozslO0");
+            Console.WriteLine($"\n   DEVELOPMENT Environment:");
+            Console.WriteLine($"   • John Smith (Homeowner):  user_33fKj66bKWI3f60HIg0L1tuUvip");
+            Console.WriteLine($"   • Jane Doe (Hobbyist):     user_33fKlsH9bgC5XJlaOLXcPrrqXQI");
+            Console.WriteLine($"   • Bob Builder (Contractor): user_33fKntiTjEiZ1S9jXSmTwmqhlAc");
+            Console.WriteLine($"\n💡 Usage: Use the appropriate Clerk ID in the X-User-Id header based on your Clerk environment.");
+            Console.WriteLine($"   All users have identical data except for their Clerk ID.");
+        }
+
+        /// <summary>
+        /// Helper method to get environment label from Clerk ID
+        /// </summary>
+        private string GetEnvironmentLabel(string clerkId)
+        {
+            return clerkId.Contains("33UeI") || clerkId.Contains("33UeK") || clerkId.Contains("33UeO") 
+                ? "PROD" 
+                : "DEV";
         }
 
         /// <summary>
         /// Clears all demo data from the database. Identifies demo users by their
-        /// Clerk IDs starting with "clerk_demo_" or specific known demo IDs.
+        /// Clerk IDs - includes both PRODUCTION and DEVELOPMENT environment IDs.
         /// </summary>
         public async Task ClearDemoDataAsync()
         {
             Console.WriteLine("🧹 Clearing existing demo data...");
             
+            // Demo Clerk IDs for BOTH Production and Development environments
             var demoClerkIds = new[] { 
-                "user_33UeIDzYloCoZABaaCR1WPmV7MT",  // john_smith
-                "user_33UeKv6eNbmLb2HClHd1PN51AZ5",  // jane_doe
-                "user_33UeOCZ7LGxjHJ8dkwnAIozslO0"   // bob_builder
+                // PRODUCTION Clerk IDs
+                "user_33UeIDzYloCoZABaaCR1WPmV7MT",  // john_smith (PROD)
+                "user_33UeKv6eNbmLb2HClHd1PN51AZ5",  // jane_doe (PROD)
+                "user_33UeOCZ7LGxjHJ8dkwnAIozslO0",  // bob_builder (PROD)
+                // DEVELOPMENT Clerk IDs
+                "user_33fKj66bKWI3f60HIg0L1tuUvip",  // john_smith (DEV)
+                "user_33fKlsH9bgC5XJlaOLXcPrrqXQI",  // jane_doe (DEV)
+                "user_33fKntiTjEiZ1S9jXSmTwmqhlAc"   // bob_builder (DEV)
             };
             
             // Find demo users
@@ -119,7 +146,11 @@ namespace HippoExchange.Api.Services
         }
 
         /// <summary>
-        /// Creates three demo users with different personas:
+        /// Creates demo users with different personas for BOTH Production and Development environments.
+        /// Each user is created twice - once with PROD Clerk ID and once with DEV Clerk ID.
+        /// The users are otherwise identical to ensure consistent testing across environments.
+        /// 
+        /// Personas:
         /// 1. John Smith - Homeowner with lawn/garden equipment
         /// 2. Jane Doe - Hobbyist with workshop tools
         /// 3. Bob Builder - Contractor with professional equipment
@@ -128,7 +159,11 @@ namespace HippoExchange.Api.Services
         {
             var users = new List<User>
             {
-                // User 1: John Smith - Homeowner
+                // ============================================
+                // PRODUCTION ENVIRONMENT USERS
+                // ============================================
+                
+                // User 1 (PROD): John Smith - Homeowner
                 new User
                 {
                     ClerkId = "user_33UeIDzYloCoZABaaCR1WPmV7MT",
@@ -183,7 +218,7 @@ namespace HippoExchange.Api.Services
                     }
                 },
                 
-                // User 2: Jane Doe - Hobbyist
+                // User 2 (PROD): Jane Doe - Hobbyist
                 new User
                 {
                     ClerkId = "user_33UeKv6eNbmLb2HClHd1PN51AZ5",
@@ -238,10 +273,179 @@ namespace HippoExchange.Api.Services
                     }
                 },
                 
-                // User 3: Bob Builder - Contractor
+                // User 3 (PROD): Bob Builder - Contractor
                 new User
                 {
                     ClerkId = "user_33UeOCZ7LGxjHJ8dkwnAIozslO0",
+                    Email = "bob.builder@demo.hippoexchange.com",
+                    Username = "bob_builder",
+                    FirstName = "Bob",
+                    LastName = "Builder",
+                    FullName = "Bob Builder",
+                    ProfileImageUrl = "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18zMkNBNVUxTHJxc1Y2amVqcFBGVmIwZTBVTlYiLCJyaWQiOiJ1c2VyXzMzVWVPQ1o3TEd4akhKOGRrd25BSW96c2xPMCIsImluaXRpYWxzIjoiQkIifQ",
+                    Location = "Austin, TX",
+                    PhoneNumber = "+1-555-0103",
+                    ImageUrl = "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18zMkNBNVUxTHJxc1Y2amVqcFBGVmIwZTBVTlYiLCJyaWQiOiJ1c2VyXzMzVWVPQ1o3TEd4akhKOGRrd25BSW96c2xPMCIsImluaXRpYWxzIjoiQkIifQ",
+                    HasImage = false,
+                    PrimaryEmailAddressId = "idn_33UeOAgYquzo8uNfv9risd0VOmO",
+                    LastSignInAt = DateTimeOffset.UtcNow.AddMinutes(-30).ToUnixTimeMilliseconds(),
+                    UpdatedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                    Address = new Address
+                    {
+                        Street = "789 Construction Blvd",
+                        City = "Austin",
+                        State = "TX",
+                        PostalCode = "78701",
+                        Country = "USA"
+                    },
+                    ContactInformation = new ContactInformation
+                    {
+                        Email = "bob.builder@demo.hippoexchange.com",
+                        Phone = "+1-555-0103",
+                        PreferredContactMethod = "phone"
+                    },
+                    AccountStatus = new AccountStatus
+                    {
+                        EmailVerified = true,
+                        AccountActive = true,
+                        Banned = false,
+                        Locked = false
+                    },
+                    Statistics = new Statistics
+                    {
+                        TotalAssets = 0,
+                        AssetsLoaned = 0,
+                        AssetsBorrowed = 0
+                    },
+                    EmailAddresses = new List<ClerkEmailAddress>
+                    {
+                        new ClerkEmailAddress
+                        {
+                            Id = "idn_33UeOAgYquzo8uNfv9risd0VOmO",
+                            EmailAddress = "bob.builder@demo.hippoexchange.com",
+                            Verification = new ClerkVerification { Status = "verified", Strategy = "admin" }
+                        }
+                    }
+                },
+                
+                // ============================================
+                // DEVELOPMENT ENVIRONMENT USERS
+                // ============================================
+                
+                // User 1 (DEV): John Smith - Homeowner
+                new User
+                {
+                    ClerkId = "user_33fKj66bKWI3f60HIg0L1tuUvip",
+                    Email = "john.smith@demo.hippoexchange.com",
+                    Username = "john_smith",
+                    FirstName = "John",
+                    LastName = "Smith",
+                    FullName = "John Smith",
+                    ProfileImageUrl = "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18zMkNBNVUxTHJxc1Y2amVqcFBGVmIwZTBVTlYiLCJyaWQiOiJ1c2VyXzMzVWVJRHpZbG9Db1pBQmFhQ1IxV1BtVjdNVCIsImluaXRpYWxzIjoiSlMifQ",
+                    Location = "Springfield, IL",
+                    PhoneNumber = "+1-555-0101",
+                    ImageUrl = "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18zMkNBNVUxTHJxc1Y2amVqcFBGVmIwZTBVTlYiLCJyaWQiOiJ1c2VyXzMzVWVJRHpZbG9Db1pBQmFhQ1IxV1BtVjdNVCIsImluaXRpYWxzIjoiSlMifQ",
+                    HasImage = false,
+                    PrimaryEmailAddressId = "idn_33UeI8ZFWT796TFQuscbvSCXayJ",
+                    LastSignInAt = DateTimeOffset.UtcNow.AddDays(-1).ToUnixTimeMilliseconds(),
+                    UpdatedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                    Address = new Address
+                    {
+                        Street = "123 Maple Street",
+                        City = "Springfield",
+                        State = "IL",
+                        PostalCode = "62701",
+                        Country = "USA"
+                    },
+                    ContactInformation = new ContactInformation
+                    {
+                        Email = "john.smith@demo.hippoexchange.com",
+                        Phone = "+1-555-0101",
+                        PreferredContactMethod = "email"
+                    },
+                    AccountStatus = new AccountStatus
+                    {
+                        EmailVerified = true,
+                        AccountActive = true,
+                        Banned = false,
+                        Locked = false
+                    },
+                    Statistics = new Statistics
+                    {
+                        TotalAssets = 0,
+                        AssetsLoaned = 0,
+                        AssetsBorrowed = 0
+                    },
+                    EmailAddresses = new List<ClerkEmailAddress>
+                    {
+                        new ClerkEmailAddress
+                        {
+                            Id = "idn_33UeI8ZFWT796TFQuscbvSCXayJ",
+                            EmailAddress = "john.smith@demo.hippoexchange.com",
+                            Verification = new ClerkVerification { Status = "verified", Strategy = "admin" }
+                        }
+                    }
+                },
+                
+                // User 2 (DEV): Jane Doe - Hobbyist
+                new User
+                {
+                    ClerkId = "user_33fKlsH9bgC5XJlaOLXcPrrqXQI",
+                    Email = "jane.doe@demo.hippoexchange.com",
+                    Username = "jane_doe",
+                    FirstName = "Jane",
+                    LastName = "Doe",
+                    FullName = "Jane Doe",
+                    ProfileImageUrl = "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18zMkNBNVUxTHJxc1Y2amVqcFBGVmIwZTBVTlYiLCJyaWQiOiJ1c2VyXzMzVWVLdjZlTmJtTGIySENsSGQxUE41MUFaNSIsImluaXRpYWxzIjoiSkQifQ",
+                    Location = "Portland, OR",
+                    PhoneNumber = "+1-555-0102",
+                    ImageUrl = "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18zMkNBNVUxTHJxc1Y2amVqcFBGVmIwZTBVTlYiLCJyaWQiOiJ1c2VyXzMzVWVLdjZlTmJtTGIySENsSGQxUE41MUFaNSIsImluaXRpYWxzIjoiSkQifQ",
+                    HasImage = false,
+                    PrimaryEmailAddressId = "idn_33UeKuwQnPVVaByJV4qZu4DXnuQ",
+                    LastSignInAt = DateTimeOffset.UtcNow.AddHours(-6).ToUnixTimeMilliseconds(),
+                    UpdatedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                    Address = new Address
+                    {
+                        Street = "456 Oak Avenue",
+                        City = "Portland",
+                        State = "OR",
+                        PostalCode = "97201",
+                        Country = "USA"
+                    },
+                    ContactInformation = new ContactInformation
+                    {
+                        Email = "jane.doe@demo.hippoexchange.com",
+                        Phone = "+1-555-0102",
+                        PreferredContactMethod = "phone"
+                    },
+                    AccountStatus = new AccountStatus
+                    {
+                        EmailVerified = true,
+                        AccountActive = true,
+                        Banned = false,
+                        Locked = false
+                    },
+                    Statistics = new Statistics
+                    {
+                        TotalAssets = 0,
+                        AssetsLoaned = 0,
+                        AssetsBorrowed = 0
+                    },
+                    EmailAddresses = new List<ClerkEmailAddress>
+                    {
+                        new ClerkEmailAddress
+                        {
+                            Id = "idn_33UeKuwQnPVVaByJV4qZu4DXnuQ",
+                            EmailAddress = "jane.doe@demo.hippoexchange.com",
+                            Verification = new ClerkVerification { Status = "verified", Strategy = "admin" }
+                        }
+                    }
+                },
+                
+                // User 3 (DEV): Bob Builder - Contractor
+                new User
+                {
+                    ClerkId = "user_33fKntiTjEiZ1S9jXSmTwmqhlAc",
                     Email = "bob.builder@demo.hippoexchange.com",
                     Username = "bob_builder",
                     FirstName = "Bob",
@@ -301,6 +505,7 @@ namespace HippoExchange.Api.Services
         /// <summary>
         /// Creates demo assets for a specific user based on their persona.
         /// Each user gets 5-10 assets appropriate to their profile.
+        /// Handles both PROD and DEV Clerk IDs for the same persona.
         /// </summary>
         private async Task<List<Assets>> CreateDemoAssetsForUserAsync(User user)
         {
@@ -308,7 +513,8 @@ namespace HippoExchange.Api.Services
             
             switch (user.ClerkId)
             {
-                case "user_33UeIDzYloCoZABaaCR1WPmV7MT":  // john_smith
+                case "user_33UeIDzYloCoZABaaCR1WPmV7MT":  // john_smith (PROD)
+                case "user_33fKj66bKWI3f60HIg0L1tuUvip":  // john_smith (DEV)
                     // Homeowner with lawn/garden equipment
                     assets = new List<Assets>
                     {
@@ -413,7 +619,8 @@ namespace HippoExchange.Api.Services
                     };
                     break;
                     
-                case "user_33UeKv6eNbmLb2HClHd1PN51AZ5":  // jane_doe
+                case "user_33UeKv6eNbmLb2HClHd1PN51AZ5":  // jane_doe (PROD)
+                case "user_33fKlsH9bgC5XJlaOLXcPrrqXQI":  // jane_doe (DEV)
                     // Hobbyist with workshop tools
                     assets = new List<Assets>
                     {
@@ -546,7 +753,8 @@ namespace HippoExchange.Api.Services
                     };
                     break;
                     
-                case "user_33UeOCZ7LGxjHJ8dkwnAIozslO0":  // bob_builder
+                case "user_33UeOCZ7LGxjHJ8dkwnAIozslO0":  // bob_builder (PROD)
+                case "user_33fKntiTjEiZ1S9jXSmTwmqhlAc":  // bob_builder (DEV)
                     // Contractor with professional equipment
                     assets = new List<Assets>
                     {
