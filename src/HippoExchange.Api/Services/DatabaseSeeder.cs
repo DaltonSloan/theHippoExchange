@@ -1,5 +1,6 @@
 using HippoExchange.Models;
 using HippoExchange.Models.Clerk;
+using HippoExchange.Api.Models;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using System;
@@ -7,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace HippoExchange.Services
+namespace HippoExchange.Api.Services
 {
     /// <summary>
     /// Service for seeding the database with demo data for development and testing.
@@ -736,7 +737,7 @@ namespace HippoExchange.Services
                     MaintenanceDescription = task.Description,
                     MaintenanceStatus = status,
                     PreserveFromPrior = status == "completed",
-                    RequiredTools = task.RequiredTools,
+                    RequiredTools = task.RequiredTools.Split(',').Select(t => t.Trim()).ToList(),
                     ToolLocation = asset.CurrentLocation
                 };
                 

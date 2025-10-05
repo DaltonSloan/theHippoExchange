@@ -1,5 +1,5 @@
 using HippoExchange.Models;
-using HippoExchange.Services;
+using HippoExchange.Api.Services;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Filters;

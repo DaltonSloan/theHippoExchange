@@ -4,7 +4,7 @@ using HippoExchange.Api.Models;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
-namespace HippoExchange.Services
+namespace HippoExchange.Api.Services
 {
     public class UserService
     {
