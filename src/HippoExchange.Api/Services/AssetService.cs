@@ -5,7 +5,7 @@ using MongoDB.Driver;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace HippoExchange.Services
+namespace HippoExchange.Api.Services
 {
     public class AssetService
     {
