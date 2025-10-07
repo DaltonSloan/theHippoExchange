@@ -14,6 +14,7 @@ using Cowsay;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -156,6 +157,12 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
+/*
+
+This is the start of the API ENDPOINT Area
+
+*/
+
 // TEMP auth placeholder until Clerk: header "X-User-Id"
 string? GetUserId(HttpContext ctx) =>
     ctx.Request.Headers.TryGetValue("X-User-Id", out var v) ? v.ToString() : null;
@@ -180,6 +187,19 @@ app.MapPost("/assets", async ([FromServices] AssetService assetService, HttpCont
         Status = assetRequest.Status,
         Favorite = assetRequest.Favorite
     };
+    
+    //This is for checking inputs to make sure they follow conventions required in models 
+    var validationResults = new List<ValidationResult>();
+    var context = new ValidationContext(newAsset, null, null);
+
+    if (!Validator.TryValidateObject(newAsset, context, validationResults, true))
+    {
+        // Return 400 with all validation messages
+        return Results.BadRequest(new
+        {
+            errors = validationResults.Select(v => v.ErrorMessage)
+        });
+    }
 
     var createdAsset = await assetService.CreateAssetAsync(newAsset);
     return Results.Created($"/assets/{createdAsset.Id}", createdAsset);
@@ -234,6 +254,18 @@ app.MapPut("/assets/{assetId}", async ([FromServices] AssetService assetService,
         Favorite = updatedAssetRequest.Favorite
     };
 
+    var validationResults = new List<ValidationResult>();
+    var context = new ValidationContext(updatedAsset, null, null);
+
+    if (!Validator.TryValidateObject(updatedAsset, context, validationResults, true))
+    {
+        // Return 400 with all validation messages
+        return Results.BadRequest(new
+        {
+            errors = validationResults.Select(v => v.ErrorMessage)
+        });
+    }
+
     var success = await assetService.ReplaceAssetAsync(assetId, updatedAsset);
     return success ? Results.NoContent() : Results.Problem("Update failed.");
 });
@@ -278,7 +310,13 @@ app.MapPost("/assets/upload-image", async (IFormFile file, [FromServices] Cloudi
     return Results.Ok(new { url = uploadResult.SecureUrl.ToString() });
 })
 .DisableAntiforgery(); // Necessary for file uploads from non-form sources
+/*
 
+
+This begins the area with the maintenence api endpoints 
+
+
+*/
 // GET /assets/{assetId}/maintenance - Get all maintenance for one asset
 app.MapGet("/assets/{assetId}/maintenance", async (
     [FromServices] MaintenanceService maintenanceService,
@@ -424,7 +462,14 @@ app.MapDelete("/maintenance/{maintenanceId}", async (
     var success = await maintenanceService.DeleteMaintenanceAsync(maintenanceId);
     return success ? Results.NoContent() : Results.Problem("Delete failed.");
 });
+/*
 
+
+This begins the area with the user and unknown endpoints. 
+
+
+*/
+//This creats a user and gets the information needed from clerk 
 app.MapPost("/api/webhooks/clerk", [SwaggerRequestExample(typeof(ClerkWebhookPayload), typeof(ClerkWebhookExample))] async (
     [FromServices] UserService userService,
     [FromBody] ClerkWebhookPayload payload) =>
@@ -449,12 +494,14 @@ app.MapPost("/api/webhooks/clerk", [SwaggerRequestExample(typeof(ClerkWebhookPay
     return Results.BadRequest(new { message = $"Unhandled event type: {payload.Type}" });
 });
 
+//The reads all users (for dev purposes)
 app.MapGet("/users", async ([FromServices] UserService userService) =>
 {
     var users = await userService.GetAllUsersAsync();
     return Results.Ok(users);
 });
 
+//This read a specific user by their userId
 app.MapGet("/users/{userId}", async ([FromServices] UserService userService, string userId) =>
 {
     var user = await userService.GetByClerkIdAsync(userId);
@@ -467,6 +514,7 @@ app.MapGet("/users/{userId}", async ([FromServices] UserService userService, str
     return Results.Ok(user);
 });
 
+//This is used to update a users information 
 app.MapPatch("/users/{userId}", async ([FromServices] UserService userService, HttpContext ctx, string userId, [FromBody] ProfileUpdateRequest updateRequest) =>
 {
     var authenticatedUserId = GetUserId(ctx);
