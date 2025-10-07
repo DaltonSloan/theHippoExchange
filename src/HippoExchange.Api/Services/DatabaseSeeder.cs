@@ -599,7 +599,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632728/qz72h4qyjzt5pazynnlu.jpg" },
                             ConditionDescription = "Chain needs sharpening but otherwise functional.",
                             OwnerUserId = user.ClerkId,
-                            Status = "maintenance",
+                            Status = "in_repair",
                             Favorite = false
                         },
                         new Assets
@@ -613,7 +613,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632726/akxkndkchpr4hcwh3wkf.jpg" },
                             ConditionDescription = "Solid and safe, some paint wear.",
                             OwnerUserId = user.ClerkId,
-                            Status = "available",
+                            Status = "unlisted",
                             Favorite = false
                         }
                     };
@@ -719,7 +719,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632710/giwwx3uci2drchvqzs5q.jpg" },
                             ConditionDescription = "Reliable, recently serviced.",
                             OwnerUserId = user.ClerkId,
-                            Status = "maintenance",
+                                Status = "in_repair",
                             Favorite = false
                         },
                         new Assets
@@ -747,7 +747,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632725/tivrelyb7miecgziebkm.jpg" },
                             ConditionDescription = "Sturdy and reliable, well-worn but solid.",
                             OwnerUserId = user.ClerkId,
-                            Status = "available",
+                            Status = "unlisted",
                             Favorite = true
                         }
                     };
@@ -797,7 +797,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632709/dhjenlemptvzth9nh80p.jpg" },
                             ConditionDescription = "Heavy duty, perfect for large tile jobs.",
                             OwnerUserId = user.ClerkId,
-                            Status = "available",
+                            Status = "unlisted",
                             Favorite = false
                         },
                         new Assets
@@ -839,7 +839,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632691/r6g6jzscf8dbhhl1pmkd.jpg" },
                             ConditionDescription = "Reliable saw, blade needs replacement soon.",
                             OwnerUserId = user.ClerkId,
-                            Status = "maintenance",
+                            Status = "in_repair",
                             Favorite = false
                         },
                         new Assets
@@ -895,7 +895,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632698/bx9w26n738lznb9ayosq.jpg" },
                             ConditionDescription = "Reliable power source for remote job sites.",
                             OwnerUserId = user.ClerkId,
-                            Status = "maintenance",
+                            Status = "in_repair",
                             Favorite = false
                         }
                     };
@@ -932,7 +932,6 @@ namespace HippoExchange.Api.Services
                 
                 // Vary the due dates and statuses
                 var (dueDate, status) = GenerateMaintenanceSchedule(i, maintenanceCount);
-                
                 var maintenance = new Maintenance
                 {
                     AssetId = asset.Id!,
