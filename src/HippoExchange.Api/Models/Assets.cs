@@ -42,6 +42,8 @@ namespace HippoExchange.Api.Models
         [Required]
         public string OwnerUserId { get; set; } = string.Empty;
 
+        [StringLength(maximumLength: 15  , MinimumLength = 3,  
+        ErrorMessage = "Max length is 15 character and a minimum of 3")]
         public string Status { get; set; } = string.Empty;
 
         public bool Favorite { get; set; }
