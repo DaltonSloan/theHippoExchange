@@ -6,6 +6,7 @@ using Swashbuckle.AspNetCore.Filters;
 using HippoExchange.Api.Examples;
 using HippoExchange.Api.Models;
 using HippoExchange.Models.Clerk;
+using HippoExchange.Api.Utilities;
 using System.Text.Json;
 using Google.Cloud.SecretManager.V1;
 using Figgle;
@@ -188,6 +189,8 @@ app.MapPost("/assets", async ([FromServices] AssetService assetService, HttpCont
         Favorite = assetRequest.Favorite
     };
     
+    newAsset = InputSanitizer.SanitizeObject(newAsset);
+
     //This is for checking inputs to make sure they follow conventions required in models 
     var validationResults = new List<ValidationResult>();
     var context = new ValidationContext(newAsset, null, null);
@@ -253,6 +256,8 @@ app.MapPut("/assets/{assetId}", async ([FromServices] AssetService assetService,
         Status = updatedAssetRequest.Status,
         Favorite = updatedAssetRequest.Favorite
     };
+
+    updatedAsset = InputSanitizer.SanitizeObject(updatedAsset);
 
     var validationResults = new List<ValidationResult>();
     var context = new ValidationContext(updatedAsset, null, null);
