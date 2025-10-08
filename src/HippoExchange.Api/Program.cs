@@ -188,7 +188,7 @@ app.MapPost("/assets", async ([FromServices] AssetService assetService, HttpCont
         Status = assetRequest.Status,
         Favorite = assetRequest.Favorite
     };
-    
+
     newAsset = InputSanitizer.SanitizeObject(newAsset);
 
     //This is for checking inputs to make sure they follow conventions required in models 
@@ -207,6 +207,27 @@ app.MapPost("/assets", async ([FromServices] AssetService assetService, HttpCont
     var createdAsset = await assetService.CreateAssetAsync(newAsset);
     return Results.Created($"/assets/{createdAsset.Id}", createdAsset);
 });
+
+//Patch /assets/{assetId} - patches a new value for the favorite attribute for an asset 
+app.MapPatch("/assets/{assetId}", async ([FromServices] AssetService assetService, HttpContext ctx, string assetId, [FromBody] bool isFavorite) =>
+{
+    //checks for username to see if it's a bad request
+    var userId = GetUserId(ctx);
+    if (string.IsNullOrWhiteSpace(userId))
+        return Results.Unauthorized();
+
+    //This is a validation to ensure we are gettint proper data 
+    if (!ctx.Request.ContentType?.Contains("application/json") ?? true)
+        return Results.BadRequest(new { error = "Invalid request format." });
+
+
+    var success = await assetService.UpdateFavorite(assetId, isFavorite);
+
+    return success
+        ? Results.Ok(new { message = $"Favorite status updated to {isFavorite}." })
+        : Results.NotFound(new { error = "Asset not found or no changes made." });
+});
+
 
 // GET /assets - Get all assets for the current user
 app.MapGet("/assets", async ([FromServices] AssetService assetService, HttpContext ctx) =>

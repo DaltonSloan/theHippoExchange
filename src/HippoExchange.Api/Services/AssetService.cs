@@ -42,5 +42,17 @@ namespace HippoExchange.Api.Services
             var result = await _assetsCollection.DeleteOneAsync(a => a.Id == assetId);
             return result.DeletedCount > 0;//this will return true or false depending on if the delete is successful
         }
+
+        public async Task<bool> UpdateFavorite(string assetId, bool newValue)
+        {
+            //builds the filter to find the asset
+            var filter = Builders<Assets>.Filter.Eq(a => a.Id, assetId);
+            //creates the update to put into database 
+            var update = Builders<Assets>.Update.Set(a => a.Favorite, newValue);
+            //does the update to the database 
+            var result = await _assetsCollection.UpdateOneAsync(filter, update);
+            //returns the results 
+            return result.MatchedCount > 0;
+        }
     }
 }
