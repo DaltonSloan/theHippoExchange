@@ -35,7 +35,7 @@ namespace HippoExchange.Api.Models
         ErrorMessage = "Category name must be between 2 and 100 characters.")]
         [RegularExpression(@"^[a-zA-Z-]+$",
         ErrorMessage = "Category name can only contain letters, and (-). ")]
-        public string Category { get; set; } = string.Empty;
+        public string assetCategory { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Cost paid is required.")]
         [Range(0.01, 1000000,
@@ -108,7 +108,7 @@ namespace HippoExchange.Api.Models
         ErrorMessage = "Category name must be between 2 and 100 characters.")]
         [RegularExpression(@"^[a-zA-Z-]+$",
         ErrorMessage = "Category name can only contain letters, and (-). ")]
-        public string Category { get; set; } = string.Empty;
+        public string assetCategory { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Cost paid is required.")]
         [Range(0.01, 1000000,
@@ -174,7 +174,7 @@ namespace HippoExchange.Api.Models
         ErrorMessage = "Category name must be between 2 and 100 characters.")]
         [RegularExpression(@"^[a-zA-Z-]+$",
         ErrorMessage = "Category name can only contain letters, and (-). ")]
-        public string Category { get; set; } = string.Empty;
+        public string assetCategory { get; set; } = string.Empty;
 
         [Range(0.01, 1000000,
         ErrorMessage = "Cost must be between 0.01 and 1,000,000.")]
