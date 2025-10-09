@@ -35,7 +35,7 @@ namespace HippoExchange.Api.Models
         ErrorMessage = "Category name must be between 2 and 100 characters.")]
         [RegularExpression(@"^[a-zA-Z-]+$",
         ErrorMessage = "Category name can only contain letters, and (-). ")]
-        public string assetCategory { get; set; } = string.Empty;
+        public string AssetCategory { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Cost paid is required.")]
         [Range(0.01, 1000000,
@@ -70,7 +70,7 @@ namespace HippoExchange.Api.Models
         [RegularExpression("Upcoming|Overdue|Completed", ErrorMessage = "Status must be Upcoming, Overdue, or Completed.")]
         public string MaintenanceStatus { get; set; } = "Upcoming";
 
-        public bool isCompleted { get; set; } = false; // or true if we need to change it.
+        public bool IsCompleted { get; set; } = false; // or true if we need to change it.
 
         [Required(ErrorMessage = "At least one required tool must be specified.")]
         [MinLength(1, ErrorMessage = "At least one required tool must be specified.")]
@@ -108,7 +108,7 @@ namespace HippoExchange.Api.Models
         ErrorMessage = "Category name must be between 2 and 100 characters.")]
         [RegularExpression(@"^[a-zA-Z-]+$",
         ErrorMessage = "Category name can only contain letters, and (-). ")]
-        public string assetCategory { get; set; } = string.Empty;
+        public string AssetCategory { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Cost paid is required.")]
         [Range(0.01, 1000000,
@@ -142,7 +142,7 @@ namespace HippoExchange.Api.Models
         [Required(ErrorMessage = "Maintenance status is required.")]
         [RegularExpression("Upcoming|Overdue|Completed", ErrorMessage = "Status must be Upcoming, Overdue, or Completed.")]
         public string MaintenanceStatus { get; set; } = "Upcoming";
-        public bool isCompleted { get; set; } = false;
+        public bool IsCompleted { get; set; } = false;
 
         [Required(ErrorMessage = "At least one required tool must be specified.")]
         [MinLength(1, ErrorMessage = "At least one required tool must be specified.")]
@@ -174,7 +174,7 @@ namespace HippoExchange.Api.Models
         ErrorMessage = "Category name must be between 2 and 100 characters.")]
         [RegularExpression(@"^[a-zA-Z-]+$",
         ErrorMessage = "Category name can only contain letters, and (-). ")]
-        public string assetCategory { get; set; } = string.Empty;
+        public string AssetCategory { get; set; } = string.Empty;
 
         [Range(0.01, 1000000,
         ErrorMessage = "Cost must be between 0.01 and 1,000,000.")]
@@ -203,7 +203,7 @@ namespace HippoExchange.Api.Models
 
         [RegularExpression("Upcoming|Overdue|Completed", ErrorMessage = "Status must be Upcoming, Overdue, or Completed.")]
         public string MaintenanceStatus { get; set; } = "Upcoming";
-        public bool isCompleted { get; set; }
+        public bool IsCompleted { get; set; }
 
         [MinLength(1, ErrorMessage = "At least one required tool must be specified.")]
         public List<string> RequiredTools { get; set; } = new List<string>();

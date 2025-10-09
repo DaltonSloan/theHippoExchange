@@ -398,13 +398,13 @@ app.MapPost("/maintenance", async (
         AssetId = request.AssetId,
         BrandName = request.BrandName,
         ProductName = request.ProductName,
-        Category = request.Category,
+        AssetCategory = request.AssetCategory,
         CostPaid = request.CostPaid,
         MaintenanceDueDate = request.MaintenanceDueDate,
         MaintenanceTitle = request.MaintenanceTitle,
         MaintenanceDescription = request.MaintenanceDescription,
         MaintenanceStatus = request.MaintenanceStatus,
-        isCompleted = request.isCompleted,
+        IsCompleted = request.IsCompleted,
         RequiredTools = request.RequiredTools,
         ToolLocation = request.ToolLocation
     };
@@ -456,13 +456,13 @@ app.MapPut("/maintenance/{maintenanceId}", async (
     // Update properties
     existingRecord.BrandName = request.BrandName;
     existingRecord.ProductName = request.ProductName;
-    existingRecord.Category = request.Category;
+    existingRecord.AssetCategory = request.AssetCategory;
     existingRecord.CostPaid = request.CostPaid;
     existingRecord.MaintenanceDueDate = request.MaintenanceDueDate;
     existingRecord.MaintenanceTitle = request.MaintenanceTitle;
     existingRecord.MaintenanceDescription = request.MaintenanceDescription;
     existingRecord.MaintenanceStatus = request.MaintenanceStatus;
-    existingRecord.isCompleted = request.isCompleted;
+    existingRecord.IsCompleted = request.IsCompleted;
     existingRecord.RequiredTools = request.RequiredTools;
     existingRecord.ToolLocation = request.ToolLocation;
 
