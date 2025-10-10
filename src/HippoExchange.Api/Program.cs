@@ -410,6 +410,7 @@ app.MapPost("/maintenance", async (
     };
 
     // Sanitize Data
+    newRecord = InputSanitizer.SanitizeObject(newRecord);
 
     var createdRecord = await maintenanceService.CreateMaintenanceAsync(newRecord);
     return Results.Created($"/maintenance/{createdRecord.Id}", createdRecord);
@@ -467,6 +468,7 @@ app.MapPut("/maintenance/{maintenanceId}", async (
     existingRecord.ToolLocation = request.ToolLocation;
 
     // Sanitize data
+    existingRecord = InputSanitizer.SanitizeObject(existingRecord);
 
     var success = await maintenanceService.UpdateMaintenanceAsync(maintenanceId, existingRecord);
     return success ? Results.NoContent() : Results.Problem("Update failed.");
