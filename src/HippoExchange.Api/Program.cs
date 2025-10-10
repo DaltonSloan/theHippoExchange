@@ -414,16 +414,19 @@ app.MapPost("/maintenance", async (
         AssetId = request.AssetId,
         BrandName = request.BrandName,
         ProductName = request.ProductName,
-        PurchaseLocation = request.PurchaseLocation,
+        AssetCategory = request.AssetCategory,
         CostPaid = request.CostPaid,
         MaintenanceDueDate = request.MaintenanceDueDate,
         MaintenanceTitle = request.MaintenanceTitle,
         MaintenanceDescription = request.MaintenanceDescription,
         MaintenanceStatus = request.MaintenanceStatus,
-        PreserveFromPrior = request.PreserveFromPrior,
+        IsCompleted = request.IsCompleted,
         RequiredTools = request.RequiredTools,
         ToolLocation = request.ToolLocation
     };
+
+    // Sanitize Data
+    newRecord = InputSanitizer.SanitizeObject(newRecord);
 
     var createdRecord = await maintenanceService.CreateMaintenanceAsync(newRecord);
     return Results.Created($"/maintenance/{createdRecord.Id}", createdRecord);
@@ -470,15 +473,18 @@ app.MapPut("/maintenance/{maintenanceId}", async (
     // Update properties
     existingRecord.BrandName = request.BrandName;
     existingRecord.ProductName = request.ProductName;
-    existingRecord.PurchaseLocation = request.PurchaseLocation;
+    existingRecord.AssetCategory = request.AssetCategory;
     existingRecord.CostPaid = request.CostPaid;
     existingRecord.MaintenanceDueDate = request.MaintenanceDueDate;
     existingRecord.MaintenanceTitle = request.MaintenanceTitle;
     existingRecord.MaintenanceDescription = request.MaintenanceDescription;
     existingRecord.MaintenanceStatus = request.MaintenanceStatus;
-    existingRecord.PreserveFromPrior = request.PreserveFromPrior;
+    existingRecord.IsCompleted = request.IsCompleted;
     existingRecord.RequiredTools = request.RequiredTools;
     existingRecord.ToolLocation = request.ToolLocation;
+
+    // Sanitize data
+    existingRecord = InputSanitizer.SanitizeObject(existingRecord);
 
     var success = await maintenanceService.UpdateMaintenanceAsync(maintenanceId, existingRecord);
     return success ? Results.NoContent() : Results.Problem("Update failed.");
