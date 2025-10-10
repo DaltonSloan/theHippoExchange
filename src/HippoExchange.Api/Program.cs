@@ -342,6 +342,22 @@ app.MapDelete("/assets/{assetId}", async ([FromServices] AssetService assetServi
     return success ? Results.NoContent() : Results.Problem("Delete failed.");
 }).RequireAuthorization("ClerkAuthorization");
 
+//Get /assets/image
+app.MapGet("/assets/{assetId}" , async ([FromServices] AssetService assetService, HttpContext ctx, string assetId) =>
+{
+    var userId = GetUserId(ctx);
+    if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
+    //calls the method in assetService to get assets image 
+    var images = await assetService.GetAssetImage(assetId);
+    //if the assets wasn't found then should get nothing back
+    if (images == null)
+    {
+        return Results.NotFound(new { error = "Asset not found" });
+    }
+
+    return Results.Ok(images);
+});
+
 // POST /assets/upload-image - Upload an image and get a URL
 app.MapPost("/assets/upload-image", async (IFormFile file, [FromServices] Cloudinary cloudinary) =>
 {
