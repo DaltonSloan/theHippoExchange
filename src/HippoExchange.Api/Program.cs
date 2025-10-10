@@ -16,6 +16,10 @@ using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
+
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,6 +58,11 @@ if (!builder.Environment.IsDevelopment())
         var cloudinarySecretVersionName = new SecretVersionName("thehippoexchange-471003", "CLOUDINARY_URL", "latest");
         var cloudinaryResult = client.AccessSecretVersion(cloudinarySecretVersionName);
         builder.Configuration["CLOUDINARY_URL"] = cloudinaryResult.Payload.Data.ToStringUtf8();
+
+        // Fetch Clerk Secret Key
+        var clerkSecretVersionName = new SecretVersionName("thehippoexchange-471003", "CLERK_SECRET_KEY", "latest");
+        var clerkResult = client.AccessSecretVersion(clerkSecretVersionName);
+        builder.Configuration["Clerk:SecretKey"] = clerkResult.Payload.Data.ToStringUtf8();
     }
     catch (Exception ex)
     {
@@ -84,32 +93,52 @@ if (string.IsNullOrEmpty(cloudinaryUrl))
 }
 builder.Services.AddSingleton(new Cloudinary(cloudinaryUrl));
 
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        var clerkIssuer = builder.Configuration["Clerk:Issuer"];
+        options.Authority = clerkIssuer;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = clerkIssuer,
+            ValidateAudience = false,
+            ValidateIssuerSigningKey = true,
+            ValidateLifetime = true
+        };
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("ClerkAuthorization", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+    });
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "HippoExchange API", Version = "v1" });
-    c.ExampleFilters();
-    c.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "Temporary User ID for authentication. Enter any string.",
-        Name = "X-User-Id",
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+        Name = "Authorization",
         In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "ApiKeyScheme"
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer"
     });
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
             new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "ApiKey" }
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
             },
             new string[] {}
         }
     });
-    c.OperationFilter<AppendAuthorizeToSummaryOperationFilter>();
 });
-builder.Services.AddSwaggerExamplesFromAssemblies(typeof(ClerkWebhookExample).Assembly);
 
 var app = builder.Build();
 
@@ -158,6 +187,9 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 /*
 
 This is the start of the API ENDPOINT Area
@@ -166,7 +198,7 @@ This is the start of the API ENDPOINT Area
 
 // TEMP auth placeholder until Clerk: header "X-User-Id"
 string? GetUserId(HttpContext ctx) =>
-    ctx.Request.Headers.TryGetValue("X-User-Id", out var v) ? v.ToString() : null;
+    ctx.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
 // POST /assets - Create a new asset
 app.MapPost("/assets", async ([FromServices] AssetService assetService, HttpContext ctx, [FromBody] CreateAssetRequest assetRequest) =>
@@ -206,7 +238,7 @@ app.MapPost("/assets", async ([FromServices] AssetService assetService, HttpCont
 
     var createdAsset = await assetService.CreateAssetAsync(newAsset);
     return Results.Created($"/assets/{createdAsset.Id}", createdAsset);
-});
+}).RequireAuthorization("ClerkAuthorization");
 
 //Patch /assets/{assetId} - patches a new value for the favorite attribute for an asset 
 app.MapPatch("/assets/{assetId}", async ([FromServices] AssetService assetService, HttpContext ctx, string assetId, [FromBody] bool isFavorite) =>
@@ -226,7 +258,7 @@ app.MapPatch("/assets/{assetId}", async ([FromServices] AssetService assetServic
     return success
         ? Results.Ok(new { message = $"Favorite status updated to {isFavorite}." })
         : Results.NotFound(new { error = "Asset not found or no changes made." });
-});
+}).RequireAuthorization("ClerkAuthorization");
 
 
 // GET /assets - Get all assets for the current user
@@ -237,7 +269,7 @@ app.MapGet("/assets", async ([FromServices] AssetService assetService, HttpConte
 
     var assets = await assetService.GetAssetsByOwnerIdAsync(userId);
     return Results.Ok(assets);
-});
+}).RequireAuthorization("ClerkAuthorization");
 
 // GET /assets/{assetId} - Get a specific asset
 app.MapGet("/assets/{assetId}", async ([FromServices] AssetService assetService, HttpContext ctx, string assetId) =>
@@ -250,7 +282,7 @@ app.MapGet("/assets/{assetId}", async ([FromServices] AssetService assetService,
     if (asset.OwnerUserId != userId) return Results.Forbid();
 
     return Results.Ok(asset);
-});
+}).RequireAuthorization("ClerkAuthorization");
 
 // PUT /assets/{assetId} - Update an asset
 app.MapPut("/assets/{assetId}", async ([FromServices] AssetService assetService, HttpContext ctx, string assetId, [FromBody] UpdateAssetRequest updatedAssetRequest) =>
@@ -294,7 +326,7 @@ app.MapPut("/assets/{assetId}", async ([FromServices] AssetService assetService,
 
     var success = await assetService.ReplaceAssetAsync(assetId, updatedAsset);
     return success ? Results.NoContent() : Results.Problem("Update failed.");
-});
+}).RequireAuthorization("ClerkAuthorization");
 
 // DELETE /assets/{assetId} - Delete an asset
 app.MapDelete("/assets/{assetId}", async ([FromServices] AssetService assetService, HttpContext ctx, string assetId) =>
@@ -308,7 +340,7 @@ app.MapDelete("/assets/{assetId}", async ([FromServices] AssetService assetServi
 
     var success = await assetService.DeleteAsset(assetId);
     return success ? Results.NoContent() : Results.Problem("Delete failed.");
-});
+}).RequireAuthorization("ClerkAuthorization");
 
 // POST /assets/upload-image - Upload an image and get a URL
 app.MapPost("/assets/upload-image", async (IFormFile file, [FromServices] Cloudinary cloudinary) =>
@@ -335,22 +367,32 @@ app.MapPost("/assets/upload-image", async (IFormFile file, [FromServices] Cloudi
 
     return Results.Ok(new { url = uploadResult.SecureUrl.ToString() });
 })
-.DisableAntiforgery(); // Necessary for file uploads from non-form sources
+.DisableAntiforgery() // Necessary for file uploads from non-form sources
+.RequireAuthorization("ClerkAuthorization");
 /*
 
 
-This begins the area with the maintenence api endpoints 
+This begins the area with the maintenence api endpoints
 
 
 */
 // GET /assets/{assetId}/maintenance - Get all maintenance for one asset
 app.MapGet("/assets/{assetId}/maintenance", async (
     [FromServices] MaintenanceService maintenanceService,
+    [FromServices] AssetService assetService,
+    HttpContext ctx,
     string assetId) =>
     {
+        var userId = GetUserId(ctx);
+        if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
+
+        var asset = await assetService.GetAssetByIdAsync(assetId);
+        if (asset is null) return Results.NotFound();
+        if (asset.OwnerUserId != userId) return Results.Forbid();
+        
         var records = await maintenanceService.GetMaintenanceByAssetIdAsync(assetId);
         return Results.Ok(records);
-    });
+    }).RequireAuthorization("ClerkAuthorization");
 
 // GET /maintenance - Get all maintenance records for the current user
 app.MapGet("/maintenance", async (
@@ -376,7 +418,7 @@ app.MapGet("/maintenance", async (
         // Fetch all maintenance records for those asset IDs in a single query
         var records = await maintenanceService.GetMaintenanceByAssetIdsAsync(assetIds);
         return Results.Ok(records);
-    });
+    }).RequireAuthorization("ClerkAuthorization");
 
 // POST /maintenance - Create a new maintenance record
 app.MapPost("/maintenance", async (
@@ -414,7 +456,7 @@ app.MapPost("/maintenance", async (
 
     var createdRecord = await maintenanceService.CreateMaintenanceAsync(newRecord);
     return Results.Created($"/maintenance/{createdRecord.Id}", createdRecord);
-});
+}).RequireAuthorization("ClerkAuthorization");
 
 // GET /maintenance/{maintenanceId} - Get a single maintenance record
 app.MapGet("/maintenance/{maintenanceId}", async (
@@ -434,7 +476,7 @@ app.MapGet("/maintenance/{maintenanceId}", async (
     if (asset is null || asset.OwnerUserId != userId) return Results.Forbid();
 
     return Results.Ok(record);
-});
+}).RequireAuthorization("ClerkAuthorization");
 
 // PUT /maintenance/{maintenanceId} - Update a maintenance record
 app.MapPut("/maintenance/{maintenanceId}", async (
@@ -472,7 +514,7 @@ app.MapPut("/maintenance/{maintenanceId}", async (
 
     var success = await maintenanceService.UpdateMaintenanceAsync(maintenanceId, existingRecord);
     return success ? Results.NoContent() : Results.Problem("Update failed.");
-});
+}).RequireAuthorization("ClerkAuthorization");
 
 // DELETE /maintenance/{maintenanceId} - Delete a maintenance record
 app.MapDelete("/maintenance/{maintenanceId}", async (
@@ -493,11 +535,11 @@ app.MapDelete("/maintenance/{maintenanceId}", async (
 
     var success = await maintenanceService.DeleteMaintenanceAsync(maintenanceId);
     return success ? Results.NoContent() : Results.Problem("Delete failed.");
-});
+}).RequireAuthorization("ClerkAuthorization");
 /*
 
 
-This begins the area with the user and unknown endpoints. 
+This begins the area with the user and unknown endpoints.
 
 
 */
@@ -562,7 +604,7 @@ app.MapPatch("/users/{userId}", async ([FromServices] UserService userService, H
     }
 
     return Results.Ok(new { message = "Profile updated successfully." });
-});
+}).RequireAuthorization("ClerkAuthorization");
 // This is the old DELETE endpoint, which is now replaced by the webhook-based one above.
 // I'm removing it to avoid confusion.
 // app.MapDelete("/users/{userId}", async ([FromServices] UserService userService, string userId) =>
