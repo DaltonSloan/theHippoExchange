@@ -311,7 +311,7 @@ app.MapDelete("/assets/{assetId}", async ([FromServices] AssetService assetServi
 });
 
 //Get /assets/image
-app.MapGet("/assets/{assetId}" , async ([FromServices] AssetService assetService, HttpContext ctx, string assetId) =>
+app.MapGet("/assets/{assetId}/images" , async ([FromServices] AssetService assetService, HttpContext ctx, string assetId) =>
 {
     var userId = GetUserId(ctx);
     if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();

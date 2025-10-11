@@ -55,7 +55,7 @@ namespace HippoExchange.Api.Services
             return result.MatchedCount > 0;
         }
         //Method to get the image list for a given asset
-        public async Task<List<string>> GetAssetImage(string assetId)
+        public async Task<List<string>?> GetAssetImage(string assetId)
         {
             var filter = Builders<Assets>.Filter.Eq(a => a.Id, assetId);
 
@@ -68,7 +68,7 @@ namespace HippoExchange.Api.Services
                 .Project<Assets>(projection)
                 .FirstOrDefaultAsync();
 
-            // Return the image list (or null if not found)
+            // Return the image list p.s if I need this return to be null just in case do this result?.Images;
             return result?.Images;
         }
     }
