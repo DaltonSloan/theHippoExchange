@@ -938,13 +938,11 @@ namespace HippoExchange.Api.Services
                     AssetId = asset.Id!,
                     BrandName = asset.BrandName,
                     ProductName = asset.ItemName,
-                    PurchaseLocation = GetRandomPurchaseLocation(random),
                     CostPaid = asset.PurchaseCost,
                     MaintenanceDueDate = dueDate,
                     MaintenanceTitle = task.Title,
                     MaintenanceDescription = task.Description,
                     MaintenanceStatus = status,
-                    PreserveFromPrior = status == "completed",
                     RequiredTools = task.RequiredTools.Split(',').Select(t => t.Trim()).ToList(),
                     ToolLocation = asset.CurrentLocation
                 };
