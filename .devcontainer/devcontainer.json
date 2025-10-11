@@ -5,6 +5,11 @@
     "../docker-compose.dev.yml"
   ],
   "service": "api-dev",
+	"runServices": [
+		"api-dev",
+		"mongo",
+		"mongo-express"
+	],
   "workspaceFolder": "/workspace",
   "features": {},
   "customizations": {
@@ -27,8 +32,5 @@
     "8082": { "label": "HTTP (host)" },
     "8445": { "label": "HTTPS (host)" }
   },
-  "runServices": ["api-dev", "mongodb", "mongo-express"],
-  "overrideCommand": true,
-  "containerUser": "dev",
   "shutdownAction": "none"
 }

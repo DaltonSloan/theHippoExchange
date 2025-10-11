@@ -14,7 +14,6 @@ using Figgle.Fonts;
 using Cowsay;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
-using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 
@@ -342,8 +341,8 @@ app.MapDelete("/assets/{assetId}", async ([FromServices] AssetService assetServi
     return success ? Results.NoContent() : Results.Problem("Delete failed.");
 }).RequireAuthorization("ClerkAuthorization");
 
-//Get /assets/image
-app.MapGet("/assets/{assetId}" , async ([FromServices] AssetService assetService, HttpContext ctx, string assetId) =>
+//Get /assets/images
+app.MapGet("/assets/{assetId}/images" , async ([FromServices] AssetService assetService, HttpContext ctx, string assetId) =>
 {
     var userId = GetUserId(ctx);
     if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
@@ -356,7 +355,7 @@ app.MapGet("/assets/{assetId}" , async ([FromServices] AssetService assetService
     }
 
     return Results.Ok(images);
-});
+}).RequireAuthorization("ClerkAuthorization");
 
 // POST /assets/upload-image - Upload an image and get a URL
 app.MapPost("/assets/upload-image", async (IFormFile file, [FromServices] Cloudinary cloudinary) =>
