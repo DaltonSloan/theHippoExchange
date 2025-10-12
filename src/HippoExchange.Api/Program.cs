@@ -409,21 +409,36 @@ app.MapPut("/maintenance/{maintenanceId}", async (
 app.MapDelete("/maintenance/{maintenanceId}", async (
     [FromServices] MaintenanceService maintenanceService,
     [FromServices] AssetService assetService,
+    [FromServices] ILogger<Program> logger, // Inject logger
     HttpContext ctx,
     string maintenanceId) =>
 {
-    var userId = GetUserId(ctx);
-    if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
+    try
+    {
+        var userId = GetUserId(ctx);
+        if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
 
-    var record = await maintenanceService.GetMaintenanceByIdAsync(maintenanceId);
-    if (record is null) return Results.NotFound();
+        var record = await maintenanceService.GetMaintenanceByIdAsync(maintenanceId);
+        if (record is null) return Results.NotFound();
 
-    // Verify user owns the asset
-    var asset = await assetService.GetAssetByIdAsync(record.AssetId);
-    if (asset is null || asset.OwnerUserId != userId) return Results.Forbid();
+        // Verify user owns the asset
+        var asset = await assetService.GetAssetByIdAsync(record.AssetId);
+        if (asset is null || asset.OwnerUserId != userId) return Results.Forbid();
 
-    var success = await maintenanceService.DeleteMaintenanceAsync(maintenanceId);
-    return success ? Results.NoContent() : Results.Problem("Delete failed.");
+        var success = await maintenanceService.DeleteMaintenanceAsync(maintenanceId);
+        if (!success)
+        {
+            logger.LogWarning("Failed to delete maintenance record {MaintenanceId}", maintenanceId);
+            return Results.Problem("Delete failed.");
+        }
+        
+        return Results.NoContent();
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "An error occurred while deleting maintenance record {MaintenanceId}", maintenanceId);
+        return Results.Problem("An unexpected error occurred.", statusCode: 500);
+    }
 });
 
 app.MapPost("/api/webhooks/clerk", [SwaggerRequestExample(typeof(ClerkWebhookPayload), typeof(ClerkWebhookExample))] async (
