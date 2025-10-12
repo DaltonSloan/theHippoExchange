@@ -8,6 +8,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+// Occasionally Verify these model imports match current schemas
+// - Check User model for all required/optional fields
+// - Check Assets model for Description vs ConditionDescription
+// - Check Maintenance model for correct status enum values
+// - Verify ClerkEmailAddress and ClerkVerification structures
+
 namespace HippoExchange.Api.Services
 {
     /// <summary>
@@ -43,14 +49,14 @@ namespace HippoExchange.Api.Services
         {
             Console.WriteLine("🌱 Starting database seeding...");
             Console.WriteLine("   Creating users for BOTH Production and Development Clerk environments\n");
-            
+
             // Clear existing demo data
             await ClearDemoDataAsync();
-            
+
             // Create demo users
             var users = await CreateDemoUsersAsync();
             Console.WriteLine($"✅ Created {users.Count} demo users (3 PROD + 3 DEV)");
-            
+
             // Create assets for each user
             var assetCount = 0;
             foreach (var user in users)
@@ -58,7 +64,7 @@ namespace HippoExchange.Api.Services
                 var assets = await CreateDemoAssetsForUserAsync(user);
                 assetCount += assets.Count;
                 Console.WriteLine($"✅ Created {assets.Count} assets for {user.FirstName} {user.LastName} ({GetEnvironmentLabel(user.ClerkId)})");
-                
+
                 // Create maintenance records for each asset
                 var maintenanceCount = 0;
                 foreach (var asset in assets)
@@ -68,7 +74,7 @@ namespace HippoExchange.Api.Services
                 }
                 Console.WriteLine($"✅ Created {maintenanceCount} maintenance records for {user.FirstName}'s assets ({GetEnvironmentLabel(user.ClerkId)})");
             }
-            
+
             Console.WriteLine($"\n🎉 Database seeding complete!");
             Console.WriteLine($"   - {users.Count} demo users (3 PROD + 3 DEV)");
             Console.WriteLine($"   - {assetCount} total assets");
@@ -90,8 +96,8 @@ namespace HippoExchange.Api.Services
         /// </summary>
         private string GetEnvironmentLabel(string clerkId)
         {
-            return clerkId.Contains("33UeI") || clerkId.Contains("33UeK") || clerkId.Contains("33UeO") 
-                ? "PROD" 
+            return clerkId.Contains("33UeI") || clerkId.Contains("33UeK") || clerkId.Contains("33UeO")
+                ? "PROD"
                 : "DEV";
         }
 
@@ -102,7 +108,7 @@ namespace HippoExchange.Api.Services
         public async Task ClearDemoDataAsync()
         {
             Console.WriteLine("🧹 Clearing existing demo data...");
-            
+
             // Demo Clerk IDs for BOTH Production and Development environments
             var demoClerkIds = new[] { 
                 // PRODUCTION Clerk IDs
@@ -114,33 +120,33 @@ namespace HippoExchange.Api.Services
                 "user_33fKlsH9bgC5XJlaOLXcPrrqXQI",  // jane_doe (DEV)
                 "user_33fKntiTjEiZ1S9jXSmTwmqhlAc"   // bob_builder (DEV)
             };
-            
+
             // Find demo users
             var demoUsers = await _usersCollection
                 .Find(u => demoClerkIds.Contains(u.ClerkId))
                 .ToListAsync();
-            
+
             if (demoUsers.Any())
             {
                 var demoUserClerkIds = demoUsers.Select(u => u.ClerkId).ToList();
-                
+
                 // Delete assets owned by demo users
                 await _assetsCollection.DeleteManyAsync(a => demoUserClerkIds.Contains(a.OwnerUserId));
-                
+
                 // Delete maintenance records for demo assets
                 var demoAssetIds = await _assetsCollection
                     .Find(a => demoUserClerkIds.Contains(a.OwnerUserId))
                     .Project(a => a.Id)
                     .ToListAsync();
-                
+
                 if (demoAssetIds.Any())
                 {
                     await _maintenanceCollection.DeleteManyAsync(m => demoAssetIds.Contains(m.AssetId));
                 }
-                
+
                 // Delete demo users
                 await _usersCollection.DeleteManyAsync(u => demoClerkIds.Contains(u.ClerkId));
-                
+
                 Console.WriteLine($"   Removed {demoUsers.Count} demo users and their associated data");
             }
         }
@@ -510,7 +516,7 @@ namespace HippoExchange.Api.Services
         private async Task<List<Assets>> CreateDemoAssetsForUserAsync(User user)
         {
             var assets = new List<Assets>();
-            
+
             switch (user.ClerkId)
             {
                 case "user_33UeIDzYloCoZABaaCR1WPmV7MT":  // john_smith (PROD)
@@ -529,7 +535,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632735/dv6hjmskjxp74tuxbxbf.png" },
                             ConditionDescription = "Good condition, well-maintained. Some minor cosmetic wear.",
                             OwnerUserId = user.ClerkId,
-                            Status = "available",
+                            Status = "Available",
                             Favorite = true
                         },
                         new Assets
@@ -543,7 +549,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632737/vzfrhrbaf4cbbr9gbcv0.png" },
                             ConditionDescription = "Excellent condition, barely used.",
                             OwnerUserId = user.ClerkId,
-                            Status = "available",
+                            Status = "Available",
                             Favorite = false
                         },
                         new Assets
@@ -557,7 +563,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632730/udo3joriymlnwzkxmy4x.jpg" },
                             ConditionDescription = "Good working condition.",
                             OwnerUserId = user.ClerkId,
-                            Status = "available",
+                            Status = "Available",
                             Favorite = false
                         },
                         new Assets
@@ -571,7 +577,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632738/avfybzwaj2optobi4gdr.jpg" },
                             ConditionDescription = "Works great, cleaned deck and driveway last month.",
                             OwnerUserId = user.ClerkId,
-                            Status = "available",
+                            Status = "Available",
                             Favorite = true
                         },
                         new Assets
@@ -585,7 +591,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632729/ce4ohjokqwri5jrgyacc.jpg" },
                             ConditionDescription = "Like new.",
                             OwnerUserId = user.ClerkId,
-                            Status = "available",
+                            Status = "Available",
                             Favorite = false
                         },
                         new Assets
@@ -599,7 +605,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632728/qz72h4qyjzt5pazynnlu.jpg" },
                             ConditionDescription = "Chain needs sharpening but otherwise functional.",
                             OwnerUserId = user.ClerkId,
-                            Status = "in_repair",
+                            Status = "In_Repair",
                             Favorite = false
                         },
                         new Assets
@@ -613,12 +619,12 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632726/akxkndkchpr4hcwh3wkf.jpg" },
                             ConditionDescription = "Solid and safe, some paint wear.",
                             OwnerUserId = user.ClerkId,
-                            Status = "unlisted",
+                            Status = "Available",
                             Favorite = false
                         }
                     };
                     break;
-                    
+
                 case "user_33UeKv6eNbmLb2HClHd1PN51AZ5":  // jane_doe (PROD)
                 case "user_33fKlsH9bgC5XJlaOLXcPrrqXQI":  // jane_doe (DEV)
                     // Hobbyist with workshop tools
@@ -635,7 +641,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632723/oprg0w223wyti5wlp1ya.jpg" },
                             ConditionDescription = "Excellent condition, blade recently replaced.",
                             OwnerUserId = user.ClerkId,
-                            Status = "available",
+                            Status = "Available",
                             Favorite = true
                         },
                         new Assets
@@ -649,7 +655,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632712/ux3nt9gaxot5bplvczsd.jpg" },
                             ConditionDescription = "Great condition, comes with two batteries.",
                             OwnerUserId = user.ClerkId,
-                            Status = "available",
+                            Status = "Available",
                             Favorite = true
                         },
                         new Assets
@@ -663,7 +669,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632717/mzmnvlp7miemgfeiqzma.jpg" },
                             ConditionDescription = "Perfect condition, laser guide works perfectly.",
                             OwnerUserId = user.ClerkId,
-                            Status = "available",
+                            Status = "Available",
                             Favorite = true
                         },
                         new Assets
@@ -677,7 +683,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632718/ucdqstqwrvktqqmdtqxm.jpg" },
                             ConditionDescription = "Works well, gets the job done.",
                             OwnerUserId = user.ClerkId,
-                            Status = "available",
+                            Status = "Available",
                             Favorite = false
                         },
                         new Assets
@@ -691,7 +697,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632721/h1bwooskg3lis5dapke5.jpg" },
                             ConditionDescription = "Still going strong after years of use.",
                             OwnerUserId = user.ClerkId,
-                            Status = "available",
+                            Status = "Available",
                             Favorite = false
                         },
                         new Assets
@@ -705,7 +711,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632720/bmaidrgdicpgend4sc1f.jpg" },
                             ConditionDescription = "Good condition, multiple router bits included.",
                             OwnerUserId = user.ClerkId,
-                            Status = "available",
+                            Status = "Available",
                             Favorite = false
                         },
                         new Assets
@@ -719,7 +725,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632710/giwwx3uci2drchvqzs5q.jpg" },
                             ConditionDescription = "Reliable, recently serviced.",
                             OwnerUserId = user.ClerkId,
-                                Status = "in_repair",
+                            Status = "In_Repair",
                             Favorite = false
                         },
                         new Assets
@@ -733,7 +739,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632715/eiopdycihijrjofskx7e.jpg" },
                             ConditionDescription = "Excellent for curved cuts, very accurate.",
                             OwnerUserId = user.ClerkId,
-                            Status = "available",
+                            Status = "Available",
                             Favorite = false
                         },
                         new Assets
@@ -747,12 +753,12 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632725/tivrelyb7miecgziebkm.jpg" },
                             ConditionDescription = "Sturdy and reliable, well-worn but solid.",
                             OwnerUserId = user.ClerkId,
-                            Status = "unlisted",
+                            Status = "Available",
                             Favorite = true
                         }
                     };
                     break;
-                    
+
                 case "user_33UeOCZ7LGxjHJ8dkwnAIozslO0":  // bob_builder (PROD)
                 case "user_33fKntiTjEiZ1S9jXSmTwmqhlAc":  // bob_builder (DEV)
                     // Contractor with professional equipment
@@ -769,7 +775,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632696/jzmplxw3uwfn4dhdfg5v.jpg" },
                             ConditionDescription = "Professional grade, used daily on job sites.",
                             OwnerUserId = user.ClerkId,
-                            Status = "available",
+                            Status = "Available",
                             Favorite = true
                         },
                         new Assets
@@ -783,7 +789,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632702/ude7kfrd2xzqnqls6uqf.jpg" },
                             ConditionDescription = "Workhorse tool, reliable and powerful.",
                             OwnerUserId = user.ClerkId,
-                            Status = "available",
+                            Status = "Available",
                             Favorite = true
                         },
                         new Assets
@@ -797,7 +803,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632709/dhjenlemptvzth9nh80p.jpg" },
                             ConditionDescription = "Heavy duty, perfect for large tile jobs.",
                             OwnerUserId = user.ClerkId,
-                            Status = "unlisted",
+                            Status = "Available",
                             Favorite = false
                         },
                         new Assets
@@ -811,7 +817,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632700/ihziebofeo2qcczomsyc.jpg" },
                             ConditionDescription = "Professional quality, essential for concrete work.",
                             OwnerUserId = user.ClerkId,
-                            Status = "available",
+                            Status = "Available",
                             Favorite = true
                         },
                         new Assets
@@ -825,7 +831,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632705/vybe4gjcentopl4nzics.png" },
                             ConditionDescription = "Accurate and reliable, red beam laser.",
                             OwnerUserId = user.ClerkId,
-                            Status = "available",
+                            Status = "Available",
                             Favorite = true
                         },
                         new Assets
@@ -839,7 +845,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632691/r6g6jzscf8dbhhl1pmkd.jpg" },
                             ConditionDescription = "Reliable saw, blade needs replacement soon.",
                             OwnerUserId = user.ClerkId,
-                            Status = "in_repair",
+                            Status = "In_Repair",
                             Favorite = false
                         },
                         new Assets
@@ -853,7 +859,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632707/e5rf6v3zcq9fm0nd3phx.jpg" },
                             ConditionDescription = "Commercial grade, inspected annually.",
                             OwnerUserId = user.ClerkId,
-                            Status = "available",
+                            Status = "Available",
                             Favorite = false
                         },
                         new Assets
@@ -867,7 +873,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632693/kldovdko4n40qq4vws52.jpg" },
                             ConditionDescription = "Gas powered, starts reliably.",
                             OwnerUserId = user.ClerkId,
-                            Status = "available",
+                            Status = "Available",
                             Favorite = false
                         },
                         new Assets
@@ -881,7 +887,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632694/gqp4ncb4olgeiep6oftq.jpg" },
                             ConditionDescription = "Professional MIG welder, excellent condition.",
                             OwnerUserId = user.ClerkId,
-                            Status = "available",
+                            Status = "Available",
                             Favorite = true
                         },
                         new Assets
@@ -895,7 +901,7 @@ namespace HippoExchange.Api.Services
                             Images = new List<string> { "https://res.cloudinary.com/dvnhbhrq2/image/upload/v1759632698/bx9w26n738lznb9ayosq.jpg" },
                             ConditionDescription = "Reliable power source for remote job sites.",
                             OwnerUserId = user.ClerkId,
-                            Status = "in_repair",
+                            Status = "In_Repair",
                             Favorite = false
                         }
                     };
@@ -903,12 +909,12 @@ namespace HippoExchange.Api.Services
             }
 
             await _assetsCollection.InsertManyAsync(assets);
-            
+
             // Update user statistics
             var filter = Builders<User>.Filter.Eq(u => u.ClerkId, user.ClerkId);
             var update = Builders<User>.Update.Set(u => u.Statistics.TotalAssets, assets.Count);
             await _usersCollection.UpdateOneAsync(filter, update);
-            
+
             return assets;
         }
 
@@ -921,36 +927,37 @@ namespace HippoExchange.Api.Services
             var random = new Random(asset.ItemName.GetHashCode()); // Deterministic random based on asset name
             var maintenanceCount = random.Next(8, 16); // 8-15 maintenance records
             var maintenanceRecords = new List<Maintenance>();
-            
+
             // Define possible maintenance tasks based on asset category
             var maintenanceTasks = GetMaintenanceTasksForCategory(asset.Category, asset.ItemName);
-            
+
             for (int i = 0; i < maintenanceCount; i++)
             {
                 var taskIndex = i % maintenanceTasks.Count;
                 var task = maintenanceTasks[taskIndex];
-                
+
                 // Vary the due dates and statuses
                 var (dueDate, status) = GenerateMaintenanceSchedule(i, maintenanceCount);
+
                 var maintenance = new Maintenance
                 {
                     AssetId = asset.Id!,
                     BrandName = asset.BrandName,
                     ProductName = asset.ItemName,
-                    PurchaseLocation = GetRandomPurchaseLocation(random),
+                    AssetCategory = asset.Category,
                     CostPaid = asset.PurchaseCost,
                     MaintenanceDueDate = dueDate,
                     MaintenanceTitle = task.Title,
                     MaintenanceDescription = task.Description,
                     MaintenanceStatus = status,
-                    PreserveFromPrior = status == "completed",
+                    IsCompleted = (status == "Completed"),
                     RequiredTools = task.RequiredTools.Split(',').Select(t => t.Trim()).ToList(),
                     ToolLocation = asset.CurrentLocation
                 };
-                
+
                 maintenanceRecords.Add(maintenance);
             }
-            
+
             await _maintenanceCollection.InsertManyAsync(maintenanceRecords);
             return maintenanceRecords;
         }
@@ -962,29 +969,29 @@ namespace HippoExchange.Api.Services
         private (DateTime dueDate, string status) GenerateMaintenanceSchedule(int index, int totalCount)
         {
             var now = DateTime.UtcNow;
-            
+
             // Distribute maintenance tasks across different time periods
             var segment = (double)index / totalCount;
-            
+
             if (segment < 0.2) // 20% overdue
             {
                 var daysOverdue = (index + 1) * 5; // 5, 10, 15, etc. days overdue
-                return (now.AddDays(-daysOverdue), "overdue");
+                return (now.AddDays(-daysOverdue), "Overdue");
             }
             else if (segment < 0.35) // 15% due soon (within 7 days)
             {
                 var daysUntilDue = (index % 7) + 1;
-                return (now.AddDays(daysUntilDue), "pending");
+                return (now.AddDays(daysUntilDue), "Upcoming");
             }
             else if (segment < 0.55) // 20% due later (within 30 days)
             {
                 var daysUntilDue = (index % 23) + 8; // 8-30 days
-                return (now.AddDays(daysUntilDue), "pending");
+                return (now.AddDays(daysUntilDue), "Upcoming");
             }
             else // 45% completed
             {
                 var daysAgo = (index % 180) + 1; // Completed in last 6 months
-                return (now.AddDays(-daysAgo), "completed");
+                return (now.AddDays(-daysAgo), "Completed");
             }
         }
 
@@ -994,7 +1001,7 @@ namespace HippoExchange.Api.Services
         private List<MaintenanceTask> GetMaintenanceTasksForCategory(string category, string itemName)
         {
             var tasks = new List<MaintenanceTask>();
-            
+
             switch (category.ToLower())
             {
                 case "lawn & garden":
@@ -1032,7 +1039,7 @@ namespace HippoExchange.Api.Services
                         }
                     };
                     break;
-                    
+
                 case "power tools":
                     tasks = new List<MaintenanceTask>
                     {
@@ -1074,7 +1081,7 @@ namespace HippoExchange.Api.Services
                         }
                     };
                     break;
-                    
+
                 case "cleaning":
                     tasks = new List<MaintenanceTask>
                     {
@@ -1104,7 +1111,7 @@ namespace HippoExchange.Api.Services
                         }
                     };
                     break;
-                    
+
                 default:
                     tasks = new List<MaintenanceTask>
                     {
@@ -1129,7 +1136,7 @@ namespace HippoExchange.Api.Services
                     };
                     break;
             }
-            
+
             return tasks;
         }
 
@@ -1150,7 +1157,7 @@ namespace HippoExchange.Api.Services
                 "Amazon",
                 "Local Hardware Store"
             };
-            
+
             return locations[random.Next(locations.Length)];
         }
 
