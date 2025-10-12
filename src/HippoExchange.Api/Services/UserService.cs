@@ -25,6 +25,40 @@ namespace HippoExchange.Api.Services
 
         public async Task UpsertUserAsync(ClerkUserData clerkUser)
         {
+            // Parse unsafe_metadata for phoneNumber and address
+            string? phoneNumber = null;
+            Address? address = null;
+
+            if (clerkUser.UnsafeMetadata.HasValue && clerkUser.UnsafeMetadata.Value.ValueKind == System.Text.Json.JsonValueKind.Object)
+            {
+                try
+                {
+                    // Extract phoneNumber from unsafe_metadata
+                    if (clerkUser.UnsafeMetadata.Value.TryGetProperty("phoneNumber", out var phoneElement))
+                    {
+                        phoneNumber = phoneElement.GetString();
+                    }
+
+                    // Extract address from unsafe_metadata
+                    if (clerkUser.UnsafeMetadata.Value.TryGetProperty("address", out var addressElement))
+                    {
+                        address = new Address
+                        {
+                            Street = addressElement.TryGetProperty("street", out var street) ? street.GetString() : null,
+                            City = addressElement.TryGetProperty("city", out var city) ? city.GetString() : null,
+                            State = addressElement.TryGetProperty("state", out var state) ? state.GetString() : null,
+                            PostalCode = addressElement.TryGetProperty("postal_code", out var postalCode) ? postalCode.GetString() : null,
+                            Country = addressElement.TryGetProperty("country", out var country) ? country.GetString() : null
+                        };
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log the error but continue with user creation without the unsafe_metadata
+                    Console.WriteLine($"Error parsing unsafe_metadata: {ex.Message}");
+                }
+            }
+
             var user = new User
             {
                 ClerkId = clerkUser.Id,
@@ -36,7 +70,9 @@ namespace HippoExchange.Api.Services
                 PrimaryEmailAddressId = clerkUser.PrimaryEmailAddressId,
                 LastSignInAt = clerkUser.LastSignInAt,
                 UpdatedAt = clerkUser.UpdatedAt,
-                EmailAddresses = clerkUser.EmailAddresses
+                EmailAddresses = clerkUser.EmailAddresses,
+                PhoneNumber = phoneNumber,
+                Address = address
             };
 
             var filter = Builders<User>.Filter.Eq(u => u.ClerkId, user.ClerkId);
@@ -53,11 +89,33 @@ namespace HippoExchange.Api.Services
         public async Task<bool> UpdateUserProfileAsync(string clerkId, ProfileUpdateRequest updateRequest)
         {
             var filter = Builders<User>.Filter.Eq(u => u.ClerkId, clerkId);
-            var update = Builders<User>.Update
-                .Set(u => u.PhoneNumber, updateRequest.PhoneNumber)
-                .Set(u => u.Address, updateRequest.Address);
+            
+            // Build update definition dynamically based on what's provided
+            var updateBuilder = Builders<User>.Update;
+            var updates = new List<UpdateDefinition<User>>();
 
-            var result = await _usersCollection.UpdateOneAsync(filter, update);
+            // Update phone number if provided
+            if (updateRequest.PhoneNumber != null)
+            {
+                updates.Add(updateBuilder.Set(u => u.PhoneNumber, updateRequest.PhoneNumber));
+            }
+
+            // Update address if provided (handles nested object)
+            if (updateRequest.Address != null)
+            {
+                updates.Add(updateBuilder.Set(u => u.Address, updateRequest.Address));
+            }
+
+            // If no updates were provided, return false
+            if (updates.Count == 0)
+            {
+                return false;
+            }
+
+            // Combine all updates
+            var combinedUpdate = updateBuilder.Combine(updates);
+            
+            var result = await _usersCollection.UpdateOneAsync(filter, combinedUpdate);
             return result.IsAcknowledged && result.ModifiedCount > 0;
         }
 

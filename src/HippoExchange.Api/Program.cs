@@ -612,6 +612,24 @@ app.MapPatch("/users/{userId}", async ([FromServices] UserService userService, H
         return Results.Unauthorized();
     }
 
+    // Sanitize the input data
+    updateRequest = InputSanitizer.SanitizeObject(updateRequest);
+
+    // Validate the nested address object if provided
+    if (updateRequest.Address != null)
+    {
+        var validationResults = new List<ValidationResult>();
+        var context = new ValidationContext(updateRequest.Address, null, null);
+
+        if (!Validator.TryValidateObject(updateRequest.Address, context, validationResults, true))
+        {
+            return Results.BadRequest(new
+            {
+                errors = validationResults.Select(v => v.ErrorMessage)
+            });
+        }
+    }
+
     var success = await userService.UpdateUserProfileAsync(userId, updateRequest);
     if (!success)
     {

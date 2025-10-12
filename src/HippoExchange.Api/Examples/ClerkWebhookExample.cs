@@ -45,7 +45,18 @@ namespace HippoExchange.Api.Examples
                     ExternalAccounts = new List<object>(),
                     PublicMetadata = System.Text.Json.JsonSerializer.SerializeToElement(new {}),
                     PrivateMetadata = System.Text.Json.JsonSerializer.SerializeToElement(new {}),
-                    UnsafeMetadata = System.Text.Json.JsonSerializer.SerializeToElement(new {}),
+                    UnsafeMetadata = System.Text.Json.JsonSerializer.SerializeToElement(new 
+                    {
+                        phoneNumber = "+1234567890",
+                        address = new
+                        {
+                            street = "123 Main St",
+                            city = "Springfield",
+                            state = "IL",
+                            postal_code = "62701",
+                            country = "USA"
+                        }
+                    }),
                     ExternalId = null,
                     LastSignInAt = 1678886400000,
                     Banned = false,
