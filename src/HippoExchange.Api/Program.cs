@@ -314,24 +314,25 @@ app.MapGet("/maintenance", async (
         return Results.Ok(records);
     });
 
-// POST /maintenance - Create a new maintenance record
-app.MapPost("/maintenance", async (
+// POST /assets/{assetId}/maintenance - Create a new maintenance record for a specific asset
+app.MapPost("/assets/{assetId}/maintenance", async (
     [FromServices] MaintenanceService maintenanceService,
     [FromServices] AssetService assetService,
     HttpContext ctx,
+    string assetId,
     [FromBody] CreateMaintenanceRequest request) =>
 {
     var userId = GetUserId(ctx);
     if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
 
     // Verify user owns the asset
-    var asset = await assetService.GetAssetByIdAsync(request.AssetId);
+    var asset = await assetService.GetAssetByIdAsync(assetId);
     if (asset is null) return Results.NotFound("Asset not found.");
     if (asset.OwnerUserId != userId) return Results.Forbid();
 
     var newRecord = new Maintenance
     {
-        AssetId = request.AssetId,
+        AssetId = assetId, // Use assetId from route
         BrandName = request.BrandName,
         ProductName = request.ProductName,
         PurchaseLocation = request.PurchaseLocation,
