@@ -180,7 +180,7 @@ namespace HippoExchange.Api.Services
                     FullName = "John Smith",
                     ProfileImageUrl = "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18zMkNBNVUxTHJxc1Y2amVqcFBGVmIwZTBVTlYiLCJyaWQiOiJ1c2VyXzMzVWVJRHpZbG9Db1pBQmFhQ1IxV1BtVjdNVCIsImluaXRpYWxzIjoiSlMifQ",
                     Location = "Springfield, IL",
-                    PhoneNumber = "+12175551001",
+                    PhoneNumber = "+1-555-0101",
                     ImageUrl = "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18zMkNBNVUxTHJxc1Y2amVqcFBGVmIwZTBVTlYiLCJyaWQiOiJ1c2VyXzMzVWVJRHpZbG9Db1pBQmFhQ1IxV1BtVjdNVCIsImluaXRpYWxzIjoiSlMifQ",
                     HasImage = false,
                     PrimaryEmailAddressId = "idn_33UeI8ZFWT796TFQuscbvSCXayJ",
@@ -197,7 +197,7 @@ namespace HippoExchange.Api.Services
                     ContactInformation = new ContactInformation
                     {
                         Email = "john.smith@demo.hippoexchange.com",
-                        Phone = "+12175551001",
+                        Phone = "+1-555-0101",
                         PreferredContactMethod = "email"
                     },
                     AccountStatus = new AccountStatus
@@ -235,7 +235,7 @@ namespace HippoExchange.Api.Services
                     FullName = "Jane Doe",
                     ProfileImageUrl = "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18zMkNBNVUxTHJxc1Y2amVqcFBGVmIwZTBVTlYiLCJyaWQiOiJ1c2VyXzMzVWVLdjZlTmJtTGIySENsSGQxUE41MUFaNSIsImluaXRpYWxzIjoiSkQifQ",
                     Location = "Portland, OR",
-                    PhoneNumber = "+15035552002",
+                    PhoneNumber = "+1-555-0102",
                     ImageUrl = "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18zMkNBNVUxTHJxc1Y2amVqcFBGVmIwZTBVTlYiLCJyaWQiOiJ1c2VyXzMzVWVLdjZlTmJtTGIySENsSGQxUE41MUFaNSIsImluaXRpYWxzIjoiSkQifQ",
                     HasImage = false,
                     PrimaryEmailAddressId = "idn_33UeKuwQnPVVaByJV4qZu4DXnuQ",
@@ -252,7 +252,7 @@ namespace HippoExchange.Api.Services
                     ContactInformation = new ContactInformation
                     {
                         Email = "jane.doe@demo.hippoexchange.com",
-                        Phone = "+15035552002",
+                        Phone = "+1-555-0102",
                         PreferredContactMethod = "phone"
                     },
                     AccountStatus = new AccountStatus
@@ -290,7 +290,7 @@ namespace HippoExchange.Api.Services
                     FullName = "Bob Builder",
                     ProfileImageUrl = "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18zMkNBNVUxTHJxc1Y2amVqcFBGVmIwZTBVTlYiLCJyaWQiOiJ1c2VyXzMzVWVPQ1o3TEd4akhKOGRrd25BSW96c2xPMCIsImluaXRpYWxzIjoiQkIifQ",
                     Location = "Austin, TX",
-                    PhoneNumber = "+15125553003",
+                    PhoneNumber = "+1-555-0103",
                     ImageUrl = "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18zMkNBNVUxTHJxc1Y2amVqcFBGVmIwZTBVTlYiLCJyaWQiOiJ1c2VyXzMzVWVPQ1o3TEd4akhKOGRrd25BSW96c2xPMCIsImluaXRpYWxzIjoiQkIifQ",
                     HasImage = false,
                     PrimaryEmailAddressId = "idn_33UeOAgYquzo8uNfv9risd0VOmO",
@@ -307,7 +307,7 @@ namespace HippoExchange.Api.Services
                     ContactInformation = new ContactInformation
                     {
                         Email = "bob.builder@demo.hippoexchange.com",
-                        Phone = "+15125553003",
+                        Phone = "+1-555-0103",
                         PreferredContactMethod = "phone"
                     },
                     AccountStatus = new AccountStatus
@@ -349,7 +349,7 @@ namespace HippoExchange.Api.Services
                     FullName = "John Smith",
                     ProfileImageUrl = "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18zMkNBNVUxTHJxc1Y2amVqcFBGVmIwZTBVTlYiLCJyaWQiOiJ1c2VyXzMzVWVJRHpZbG9Db1pBQmFhQ1IxV1BtVjdNVCIsImluaXRpYWxzIjoiSlMifQ",
                     Location = "Springfield, IL",
-                    PhoneNumber = "+12175551001",
+                    PhoneNumber = "+1-555-0101",
                     ImageUrl = "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18zMkNBNVUxTHJxc1Y2amVqcFBGVmIwZTBVTlYiLCJyaWQiOiJ1c2VyXzMzVWVJRHpZbG9Db1pBQmFhQ1IxV1BtVjdNVCIsImluaXRpYWxzIjoiSlMifQ",
                     HasImage = false,
                     PrimaryEmailAddressId = "idn_33UeI8ZFWT796TFQuscbvSCXayJ",
@@ -366,7 +366,7 @@ namespace HippoExchange.Api.Services
                     ContactInformation = new ContactInformation
                     {
                         Email = "john.smith@demo.hippoexchange.com",
-                        Phone = "+12175551001",
+                        Phone = "+1-555-0101",
                         PreferredContactMethod = "email"
                     },
                     AccountStatus = new AccountStatus
@@ -404,7 +404,7 @@ namespace HippoExchange.Api.Services
                     FullName = "Jane Doe",
                     ProfileImageUrl = "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18zMkNBNVUxTHJxc1Y2amVqcFBGVmIwZTBVTlYiLCJyaWQiOiJ1c2VyXzMzVWVLdjZlTmJtTGIySENsSGQxUE41MUFaNSIsImluaXRpYWxzIjoiSkQifQ",
                     Location = "Portland, OR",
-                    PhoneNumber = "+15035552002",
+                    PhoneNumber = "+1-555-0102",
                     ImageUrl = "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18zMkNBNVUxTHJxc1Y2amVqcFBGVmIwZTBVTlYiLCJyaWQiOiJ1c2VyXzMzVWVLdjZlTmJtTGIySENsSGQxUE41MUFaNSIsImluaXRpYWxzIjoiSkQifQ",
                     HasImage = false,
                     PrimaryEmailAddressId = "idn_33UeKuwQnPVVaByJV4qZu4DXnuQ",
@@ -421,7 +421,7 @@ namespace HippoExchange.Api.Services
                     ContactInformation = new ContactInformation
                     {
                         Email = "jane.doe@demo.hippoexchange.com",
-                        Phone = "+15035552002",
+                        Phone = "+1-555-0102",
                         PreferredContactMethod = "phone"
                     },
                     AccountStatus = new AccountStatus
@@ -459,7 +459,7 @@ namespace HippoExchange.Api.Services
                     FullName = "Bob Builder",
                     ProfileImageUrl = "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18zMkNBNVUxTHJxc1Y2amVqcFBGVmIwZTBVTlYiLCJyaWQiOiJ1c2VyXzMzVWVPQ1o3TEd4akhKOGRrd25BSW96c2xPMCIsImluaXRpYWxzIjoiQkIifQ",
                     Location = "Austin, TX",
-                    PhoneNumber = "+15125553003",
+                    PhoneNumber = "+1-555-0103",
                     ImageUrl = "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18zMkNBNVUxTHJxc1Y2amVqcFBGVmIwZTBVTlYiLCJyaWQiOiJ1c2VyXzMzVWVPQ1o3TEd4akhKOGRrd25BSW96c2xPMCIsImluaXRpYWxzIjoiQkIifQ",
                     HasImage = false,
                     PrimaryEmailAddressId = "idn_33UeOAgYquzo8uNfv9risd0VOmO",
@@ -476,7 +476,7 @@ namespace HippoExchange.Api.Services
                     ContactInformation = new ContactInformation
                     {
                         Email = "bob.builder@demo.hippoexchange.com",
-                        Phone = "+15125553003",
+                        Phone = "+1-555-0103",
                         PreferredContactMethod = "phone"
                     },
                     AccountStatus = new AccountStatus
