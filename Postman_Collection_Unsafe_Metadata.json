@@ -1,0 +1,470 @@
+{
+  "info": {
+    "name": "HippoExchange - Unsafe Metadata Testing",
+    "description": "Collection for testing unsafe_metadata webhook handling and user profile updates with nested address objects",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "clerk_jwt_token",
+      "value": "YOUR_CLERK_JWT_TOKEN_HERE",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Database Seeding",
+      "item": [
+        {
+          "name": "Check Seeded User - John Smith (PROD)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/user_33UeIDzYloCoZABaaCR1WPmV7MT",
+              "host": ["{{base_url}}"],
+              "path": ["users", "user_33UeIDzYloCoZABaaCR1WPmV7MT"]
+            },
+            "description": "Verify that seeded user has phone_number and address fields populated"
+          },
+          "response": []
+        },
+        {
+          "name": "Check Seeded User - Jane Doe (PROD)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/user_33UeKv6eNbmLb2HClHd1PN51AZ5",
+              "host": ["{{base_url}}"],
+              "path": ["users", "user_33UeKv6eNbmLb2HClHd1PN51AZ5"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": ["{{base_url}}"],
+              "path": ["users"]
+            },
+            "description": "Get list of all users to verify seeding"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Webhook Tests (user.created)",
+      "item": [
+        {
+          "name": "Create User - Complete unsafe_metadata",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"user.created\",\n  \"data\": {\n    \"id\": \"user_test_complete_001\",\n    \"object\": \"user\",\n    \"username\": \"complete_test\",\n    \"first_name\": \"Complete\",\n    \"last_name\": \"Test\",\n    \"image_url\": \"https://example.com/image.png\",\n    \"has_image\": false,\n    \"primary_email_address_id\": \"idn_complete_001\",\n    \"password_enabled\": true,\n    \"two_factor_enabled\": false,\n    \"email_addresses\": [\n      {\n        \"id\": \"idn_complete_001\",\n        \"email_address\": \"complete.test@example.com\",\n        \"verification\": {\n          \"status\": \"verified\",\n          \"strategy\": \"email_code\"\n        }\n      }\n    ],\n    \"unsafe_metadata\": {\n      \"phoneNumber\": \"+1-555-COMPLETE\",\n      \"address\": {\n        \"street\": \"100 Complete Street\",\n        \"city\": \"Complete City\",\n        \"state\": \"CC\",\n        \"postal_code\": \"11111\",\n        \"country\": \"USA\"\n      }\n    },\n    \"last_sign_in_at\": 1678886400000,\n    \"banned\": false,\n    \"created_at\": 1726942676273,\n    \"updated_at\": 1678886400000\n  },\n  \"object\": \"event\",\n  \"timestamp\": 1678886400000\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/webhooks/clerk",
+              "host": ["{{base_url}}"],
+              "path": ["api", "webhooks", "clerk"]
+            },
+            "description": "Test webhook with complete unsafe_metadata containing both phone and address"
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Complete User Created",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/user_test_complete_001",
+              "host": ["{{base_url}}"],
+              "path": ["users", "user_test_complete_001"]
+            },
+            "description": "Verify user was created with phone number and address from unsafe_metadata"
+          },
+          "response": []
+        },
+        {
+          "name": "Create User - Phone Only",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"user.created\",\n  \"data\": {\n    \"id\": \"user_test_phone_only_002\",\n    \"username\": \"phone_only\",\n    \"first_name\": \"Phone\",\n    \"last_name\": \"Only\",\n    \"email_addresses\": [\n      {\n        \"id\": \"idn_phone_002\",\n        \"email_address\": \"phone.only@example.com\"\n      }\n    ],\n    \"unsafe_metadata\": {\n      \"phoneNumber\": \"+1-555-PHONE\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/webhooks/clerk",
+              "host": ["{{base_url}}"],
+              "path": ["api", "webhooks", "clerk"]
+            },
+            "description": "Test with only phone number in unsafe_metadata (no address)"
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Phone Only User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/user_test_phone_only_002",
+              "host": ["{{base_url}}"],
+              "path": ["users", "user_test_phone_only_002"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create User - No unsafe_metadata",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"user.created\",\n  \"data\": {\n    \"id\": \"user_test_no_metadata_003\",\n    \"username\": \"no_metadata\",\n    \"first_name\": \"No\",\n    \"last_name\": \"Metadata\",\n    \"email_addresses\": [\n      {\n        \"id\": \"idn_no_003\",\n        \"email_address\": \"no.metadata@example.com\"\n      }\n    ]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/webhooks/clerk",
+              "host": ["{{base_url}}"],
+              "path": ["api", "webhooks", "clerk"]
+            },
+            "description": "Test graceful handling when unsafe_metadata is missing entirely"
+          },
+          "response": []
+        },
+        {
+          "name": "Verify No Metadata User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/user_test_no_metadata_003",
+              "host": ["{{base_url}}"],
+              "path": ["users", "user_test_no_metadata_003"]
+            },
+            "description": "Should have null phone_number and address"
+          },
+          "response": []
+        },
+        {
+          "name": "Update User - unsafe_metadata (user.updated)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"user.updated\",\n  \"data\": {\n    \"id\": \"user_test_complete_001\",\n    \"username\": \"complete_test\",\n    \"first_name\": \"Complete\",\n    \"last_name\": \"Test Updated\",\n    \"email_addresses\": [\n      {\n        \"id\": \"idn_complete_001\",\n        \"email_address\": \"complete.test@example.com\"\n      }\n    ],\n    \"unsafe_metadata\": {\n      \"phoneNumber\": \"+1-555-UPDATED\",\n      \"address\": {\n        \"street\": \"200 Updated Street\",\n        \"city\": \"Updated City\",\n        \"state\": \"UC\",\n        \"postal_code\": \"22222\",\n        \"country\": \"USA\"\n      }\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/webhooks/clerk",
+              "host": ["{{base_url}}"],
+              "path": ["api", "webhooks", "clerk"]
+            },
+            "description": "Test user.updated event also handles unsafe_metadata"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. PATCH User Profile Tests",
+      "item": [
+        {
+          "name": "Update Both Phone and Address",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clerk_jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+1-555-BOTH\",\n  \"address\": {\n    \"street\": \"300 Both Fields Street\",\n    \"city\": \"Both City\",\n    \"state\": \"BC\",\n    \"postal_code\": \"33333\",\n    \"country\": \"USA\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/user_33UeIDzYloCoZABaaCR1WPmV7MT",
+              "host": ["{{base_url}}"],
+              "path": ["users", "user_33UeIDzYloCoZABaaCR1WPmV7MT"]
+            },
+            "description": "Update both phone number and nested address object"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Only Phone Number",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clerk_jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+1-555-PHONEONLY\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/user_33UeIDzYloCoZABaaCR1WPmV7MT",
+              "host": ["{{base_url}}"],
+              "path": ["users", "user_33UeIDzYloCoZABaaCR1WPmV7MT"]
+            },
+            "description": "Update only phone number, address should remain unchanged"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Only Address (Nested Object)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clerk_jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": {\n    \"street\": \"400 Address Only Street\",\n    \"city\": \"Address City\",\n    \"state\": \"AC\",\n    \"postal_code\": \"44444\",\n    \"country\": \"USA\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/user_33UeIDzYloCoZABaaCR1WPmV7MT",
+              "host": ["{{base_url}}"],
+              "path": ["users", "user_33UeIDzYloCoZABaaCR1WPmV7MT"]
+            },
+            "description": "Update only nested address object, phone should remain unchanged"
+          },
+          "response": []
+        },
+        {
+          "name": "Partial Address Update",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clerk_jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": {\n    \"street\": \"500 Partial Street\",\n    \"city\": \"Partial City\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/user_33UeIDzYloCoZABaaCR1WPmV7MT",
+              "host": ["{{base_url}}"],
+              "path": ["users", "user_33UeIDzYloCoZABaaCR1WPmV7MT"]
+            },
+            "description": "Update address with only some fields provided"
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Profile After Updates",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/user_33UeIDzYloCoZABaaCR1WPmV7MT",
+              "host": ["{{base_url}}"],
+              "path": ["users", "user_33UeIDzYloCoZABaaCR1WPmV7MT"]
+            },
+            "description": "Check user profile to see all updates"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Validation & Error Tests",
+      "item": [
+        {
+          "name": "FAIL - Address Field Too Long",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clerk_jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": {\n    \"street\": \"This is an extremely long street name that definitely exceeds the maximum allowed length of one hundred characters for testing validation rules\",\n    \"city\": \"Test City\",\n    \"state\": \"TS\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/user_33UeIDzYloCoZABaaCR1WPmV7MT",
+              "host": ["{{base_url}}"],
+              "path": ["users", "user_33UeIDzYloCoZABaaCR1WPmV7MT"]
+            },
+            "description": "Should return 400 Bad Request with validation error"
+          },
+          "response": []
+        },
+        {
+          "name": "FAIL - Unauthorized Update (Wrong User)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clerk_jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+1-555-HACK\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/user_33UeKv6eNbmLb2HClHd1PN51AZ5",
+              "host": ["{{base_url}}"],
+              "path": ["users", "user_33UeKv6eNbmLb2HClHd1PN51AZ5"]
+            },
+            "description": "Attempt to update another user's profile - should return 401 Unauthorized"
+          },
+          "response": []
+        },
+        {
+          "name": "FAIL - No Authorization Header",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+1-555-NOAUTH\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/user_33UeIDzYloCoZABaaCR1WPmV7MT",
+              "host": ["{{base_url}}"],
+              "path": ["users", "user_33UeIDzYloCoZABaaCR1WPmV7MT"]
+            },
+            "description": "Request without Authorization header - should return 401"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Integration Tests",
+      "item": [
+        {
+          "name": "Full Flow - Webhook then PATCH",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Step 1: Create user via webhook",
+                  "pm.test(\"Webhook creates user\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Step 2: Get the user",
+                  "setTimeout(function() {",
+                  "    pm.sendRequest({",
+                  "        url: pm.variables.get('base_url') + '/users/user_integration_test',",
+                  "        method: 'GET'",
+                  "    }, function (err, response) {",
+                  "        pm.test('User has initial phone and address', function() {",
+                  "            var user = response.json();",
+                  "            pm.expect(user.phone_number).to.eql('+1-555-INITIAL');",
+                  "            pm.expect(user.address.city).to.eql('Initial City');",
+                  "        });",
+                  "    });",
+                  "}, 500);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"user.created\",\n  \"data\": {\n    \"id\": \"user_integration_test\",\n    \"username\": \"integration_test\",\n    \"first_name\": \"Integration\",\n    \"last_name\": \"Test\",\n    \"email_addresses\": [{\n      \"id\": \"idn_integration\",\n      \"email_address\": \"integration@test.com\"\n    }],\n    \"unsafe_metadata\": {\n      \"phoneNumber\": \"+1-555-INITIAL\",\n      \"address\": {\n        \"street\": \"100 Initial St\",\n        \"city\": \"Initial City\",\n        \"state\": \"IC\",\n        \"postal_code\": \"10000\",\n        \"country\": \"USA\"\n      }\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/webhooks/clerk",
+              "host": ["{{base_url}}"],
+              "path": ["api", "webhooks", "clerk"]
+            },
+            "description": "Integration test: Create user via webhook, then update via PATCH"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
