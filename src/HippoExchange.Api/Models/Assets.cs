@@ -10,16 +10,22 @@ namespace HippoExchange.Api.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public string? Id { get; set; }
 
-        [Required, StringLength(maximumLength: 100  , MinimumLength = 3,  
+        [Required, StringLength(maximumLength: 100, MinimumLength = 3,
         ErrorMessage = "Max length is 100 character and a minimum of 3")]
+        [RegularExpression(@"^[a-zA-Z0-9\s\s\-\&',\.]+$",
+        ErrorMessage = "Item name can only contain letter, numbers, spaces, (-), (,), (.), (&), and (').")]
         public string ItemName { get; set; } = string.Empty;
 
-        [StringLength(maximumLength: 100  , MinimumLength = 3,  
+        [StringLength(maximumLength: 100, MinimumLength = 3,
         ErrorMessage = "Max length is 100 character and a minimum of 3")]
+        [RegularExpression(@"^[a-zA-Z0-9\s\s\-\&']+$",
+        ErrorMessage = "Brand name can only contain letter, numbers, spaces, (-), (&), and (').")]
         public string BrandName { get; set; } = string.Empty;
 
-        [StringLength(maximumLength: 100  , MinimumLength = 3,  
+        [StringLength(maximumLength: 100, MinimumLength = 3,
         ErrorMessage = "Max length is 100 character and a minimum of 3")]
+        [RegularExpression(@"^[a-zA-Z-]+$",
+        ErrorMessage = "Category name can only contain letters, and (-). ")]
         public string Category { get; set; } = string.Empty;
 
         [Range(typeof(DateTime),"0001-01-01","2025-01-01", 
@@ -42,25 +48,31 @@ namespace HippoExchange.Api.Models
         [Required]
         public string OwnerUserId { get; set; } = string.Empty;
 
-        [StringLength(maximumLength: 15  , MinimumLength = 3,  
-        ErrorMessage = "Max length is 15 character and a minimum of 3")]
+        [Required(ErrorMessage = "Status is required.")]
+        [RegularExpression("Available|In_Repair|Unlisted", ErrorMessage = "Status must be Available, In_Repair, or Unlisted.")]
         public string Status { get; set; } = string.Empty;
 
-        public bool Favorite { get; set; }
+        public bool Favorite { get; set; } = false;
     }
 
     public class CreateAssetRequest
     {
-[Required, StringLength(maximumLength: 100  , MinimumLength = 3,  
+        [Required, StringLength(maximumLength: 100, MinimumLength = 3,
         ErrorMessage = "Max length is 100 character and a minimum of 3")]
+        [RegularExpression(@"^[a-zA-Z0-9\s\s\-\&',\.]+$",
+        ErrorMessage = "Item name can only contain letter, numbers, spaces, (-), (,), (.), (&), and (').")]
         public string ItemName { get; set; } = string.Empty;
 
-        [StringLength(maximumLength: 100  , MinimumLength = 3,  
+        [StringLength(maximumLength: 100, MinimumLength = 3,
         ErrorMessage = "Max length is 100 character and a minimum of 3")]
+        [RegularExpression(@"^[a-zA-Z0-9\s\s\-\&']+$",
+        ErrorMessage = "Brand name can only contain letter, numbers, spaces, (-), (&), and (').")]
         public string BrandName { get; set; } = string.Empty;
 
-        [StringLength(maximumLength: 100  , MinimumLength = 3,  
+        [StringLength(maximumLength: 100, MinimumLength = 3,
         ErrorMessage = "Max length is 100 character and a minimum of 3")]
+        [RegularExpression(@"^[a-zA-Z-]+$",
+        ErrorMessage = "Category name can only contain letters, and (-). ")]
         public string Category { get; set; } = string.Empty;
 
         [Range(typeof(DateTime),"1900-01-01","2025-01-01", 
@@ -83,23 +95,31 @@ namespace HippoExchange.Api.Models
         [Required]
         public string OwnerUserId { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "Status is required.")]
+        [RegularExpression("Available|In_Repair|Unlisted", ErrorMessage = "Status must be Available, In_Repair, or Unlisted.")]
         public string Status { get; set; } = string.Empty;
 
-        public bool Favorite { get; set; }
+        public bool Favorite { get; set; } = false;
     }
 
     public class UpdateAssetRequest
     {
-        [StringLength(maximumLength: 100  , MinimumLength = 3,  
+        [StringLength(maximumLength: 100, MinimumLength = 3,
         ErrorMessage = "Max length is 100 character and a minimum of 3")]
+        [RegularExpression(@"^[a-zA-Z0-9\s\s\-\&',\.]+$",
+        ErrorMessage = "Item name can only contain letter, numbers, spaces, (-), (,), (.), (&), and (').")]
         public string ItemName { get; set; } = string.Empty;
 
-        [StringLength(maximumLength: 100  , MinimumLength = 3,  
+        [StringLength(maximumLength: 100, MinimumLength = 3,
         ErrorMessage = "Max length is 100 character and a minimum of 3")]
+        [RegularExpression(@"^[a-zA-Z0-9\s\s\-\&']+$",
+        ErrorMessage = "Brand name can only contain letter, numbers, spaces, (-), (&), and (').")]
         public string BrandName { get; set; } = string.Empty;
 
-        [StringLength(maximumLength: 100  , MinimumLength = 3,  
+        [StringLength(maximumLength: 100, MinimumLength = 3,
         ErrorMessage = "Max length is 100 character and a minimum of 3")]
+        [RegularExpression(@"^[a-zA-Z-]+$",
+        ErrorMessage = "Category name can only contain letters, and (-). ")]
         public string Category { get; set; } = string.Empty;
 
         [Range(typeof(DateTime),"1900-01-01","2025-01-01", 
@@ -119,6 +139,8 @@ namespace HippoExchange.Api.Models
         ErrorMessage = "Max length is 1000 character and a minimum of 0")]
         public string ConditionDescription { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "Status is required.")]
+        [RegularExpression("Available|In_Repair|Unlisted", ErrorMessage = "Status must be Available, In_Repair, or Unlisted.")]
         public string Status { get; set; } = string.Empty;
 
         public bool Favorite { get; set; }
