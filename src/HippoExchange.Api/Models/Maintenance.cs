@@ -30,6 +30,8 @@ namespace HippoExchange.Api.Models
         ErrorMessage = "Product name can only contain letter, numbers, spaces, (-), (,), (.), (&), and (').")]
         public string ProductName { get; set; } = string.Empty;
 
+        public string? PurchaseLocation { get; set; }
+
         [Required(ErrorMessage = "Category is required.")]
         [StringLength(maximumLength: 100, MinimumLength = 2,
         ErrorMessage = "Category name must be between 2 and 100 characters.")]
@@ -69,6 +71,8 @@ namespace HippoExchange.Api.Models
         [Required(ErrorMessage = "Maintenance status is required.")]
         [RegularExpression("Upcoming|Overdue|Completed", ErrorMessage = "Status must be Upcoming, Overdue, or Completed.")]
         public string MaintenanceStatus { get; set; } = "Upcoming";
+
+        public bool PreserveFromPrior { get; set; }
 
         public bool IsCompleted { get; set; } = false; // or true if we need to change it.
 
@@ -103,6 +107,8 @@ namespace HippoExchange.Api.Models
         ErrorMessage = "Product name can only contain letter, numbers, spaces, (-), (,), (.), (&), and (').")]
         public string ProductName { get; set; } = string.Empty;
 
+        public string? PurchaseLocation { get; set; }
+
         [Required(ErrorMessage = "Category is required.")]
         [StringLength(maximumLength: 100, MinimumLength = 2,
         ErrorMessage = "Category name must be between 2 and 100 characters.")]
@@ -142,6 +148,9 @@ namespace HippoExchange.Api.Models
         [Required(ErrorMessage = "Maintenance status is required.")]
         [RegularExpression("Upcoming|Overdue|Completed", ErrorMessage = "Status must be Upcoming, Overdue, or Completed.")]
         public string MaintenanceStatus { get; set; } = "Upcoming";
+        
+        public bool PreserveFromPrior { get; set; }
+        
         public bool IsCompleted { get; set; } = false;
 
         [Required(ErrorMessage = "At least one required tool must be specified.")]
@@ -169,6 +178,8 @@ namespace HippoExchange.Api.Models
         [RegularExpression(@"^[a-zA-Z0-9\s\s\-\&',\.]+$",
         ErrorMessage = "Product name can only contain letter, numbers, spaces, (-), (,), (.), (&), and (').")]
         public string ProductName { get; set; } = string.Empty;
+
+        public string? PurchaseLocation { get; set; }
 
         [StringLength(maximumLength: 100,
         ErrorMessage = "Category name must be between 2 and 100 characters.")]
@@ -203,6 +214,9 @@ namespace HippoExchange.Api.Models
 
         [RegularExpression("Upcoming|Overdue|Completed", ErrorMessage = "Status must be Upcoming, Overdue, or Completed.")]
         public string MaintenanceStatus { get; set; } = "Upcoming";
+        
+        public bool PreserveFromPrior { get; set; }
+        
         public bool IsCompleted { get; set; }
 
         [MinLength(1, ErrorMessage = "At least one required tool must be specified.")]
