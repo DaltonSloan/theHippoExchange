@@ -8,44 +8,31 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:80
-      Mongo__ConnectionString: "mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb:27017/?authSource=admin"
+      Mongo__ConnectionString: "mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongo:27017/"
       Mongo__DatabaseName: "${MONGO_DB_NAME}"
     volumes:
       - .:/workspace
     ports:
       - "8082:80"   # host 8082 → container 80
     depends_on:
-      - mongodb
+      - mongo
     restart: unless-stopped
 
-  mongodb:
-    image: mongo:7
-    command: ["--auth"]
+  mongo:
+    image: mongo
+    restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: "${MONGO_USERNAME}"
       MONGO_INITDB_ROOT_PASSWORD: "${MONGO_PASSWORD}"
       MONGO_INITDB_DATABASE: "${MONGO_INITDB_DATABASE}"
-    volumes:
-      - mongo-data:/data/db
-      - ./mongo-init:/docker-entrypoint-initdb.d:ro
-    ports:
-      - "27017:27017"
-    restart: unless-stopped
 
   mongo-express:
-    image: mongo-express:1
-    depends_on:
-      - mongodb
-    environment:
-      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
-      ME_CONFIG_MONGODB_ADMINUSERNAME: "${MONGO_USERNAME}"
-      ME_CONFIG_MONGODB_ADMINPASSWORD: "${MONGO_PASSWORD}"
-      ME_CONFIG_MONGODB_SERVER: "mongodb"
-      ME_CONFIG_BASICAUTH_USERNAME: "admin"
-      ME_CONFIG_BASICAUTH_PASSWORD: "admin"
+    image: mongo-express
+    restart: always
     ports:
       - "8081:8081"
-    restart: unless-stopped
-
-volumes:
-  mongo-data:
+    environment:
+      ME_CONFIG_MONGODB_URL: "mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongo:27017/"
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
+      ME_CONFIG_BASICAUTH_USERNAME: "${MONGO_USERNAME}"
+      ME_CONFIG_BASICAUTH_PASSWORD: "${MONGO_PASSWORD}"

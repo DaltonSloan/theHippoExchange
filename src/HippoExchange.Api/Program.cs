@@ -6,6 +6,7 @@ using Swashbuckle.AspNetCore.Filters;
 using HippoExchange.Api.Examples;
 using HippoExchange.Api.Models;
 using HippoExchange.Models.Clerk;
+using HippoExchange.Api.Utilities;
 using System.Text.Json;
 using Google.Cloud.SecretManager.V1;
 using Figgle;
@@ -13,7 +14,7 @@ using Figgle.Fonts;
 using Cowsay;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
-using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -156,6 +157,12 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
+/*
+
+This is the start of the API ENDPOINT Area
+
+*/
+
 // TEMP auth placeholder until Clerk: header "X-User-Id"
 string? GetUserId(HttpContext ctx) =>
     ctx.Request.Headers.TryGetValue("X-User-Id", out var v) ? v.ToString() : null;
@@ -181,9 +188,45 @@ app.MapPost("/assets", async ([FromServices] AssetService assetService, HttpCont
         Favorite = assetRequest.Favorite
     };
 
+    newAsset = InputSanitizer.SanitizeObject(newAsset);
+
+    //This is for checking inputs to make sure they follow conventions required in models 
+    var validationResults = new List<ValidationResult>();
+    var context = new ValidationContext(newAsset, null, null);
+
+    if (!Validator.TryValidateObject(newAsset, context, validationResults, true))
+    {
+        // Return 400 with all validation messages
+        return Results.BadRequest(new
+        {
+            errors = validationResults.Select(v => v.ErrorMessage)
+        });
+    }
+
     var createdAsset = await assetService.CreateAssetAsync(newAsset);
     return Results.Created($"/assets/{createdAsset.Id}", createdAsset);
 });
+
+//Patch /assets/{assetId} - patches a new value for the favorite attribute for an asset 
+app.MapPatch("/assets/{assetId}", async ([FromServices] AssetService assetService, HttpContext ctx, string assetId, [FromBody] bool isFavorite) =>
+{
+    //checks for username to see if it's a bad request
+    var userId = GetUserId(ctx);
+    if (string.IsNullOrWhiteSpace(userId))
+        return Results.Unauthorized();
+
+    //This is a validation to ensure we are gettint proper data 
+    if (!ctx.Request.ContentType?.Contains("application/json") ?? true)
+        return Results.BadRequest(new { error = "Invalid request format." });
+
+
+    var success = await assetService.UpdateFavorite(assetId, isFavorite);
+
+    return success
+        ? Results.Ok(new { message = $"Favorite status updated to {isFavorite}." })
+        : Results.NotFound(new { error = "Asset not found or no changes made." });
+});
+
 
 // GET /assets - Get all assets for the current user
 app.MapGet("/assets", async ([FromServices] AssetService assetService, HttpContext ctx) =>
@@ -234,6 +277,20 @@ app.MapPut("/assets/{assetId}", async ([FromServices] AssetService assetService,
         Favorite = updatedAssetRequest.Favorite
     };
 
+    updatedAsset = InputSanitizer.SanitizeObject(updatedAsset);
+
+    var validationResults = new List<ValidationResult>();
+    var context = new ValidationContext(updatedAsset, null, null);
+
+    if (!Validator.TryValidateObject(updatedAsset, context, validationResults, true))
+    {
+        // Return 400 with all validation messages
+        return Results.BadRequest(new
+        {
+            errors = validationResults.Select(v => v.ErrorMessage)
+        });
+    }
+
     var success = await assetService.ReplaceAssetAsync(assetId, updatedAsset);
     return success ? Results.NoContent() : Results.Problem("Update failed.");
 });
@@ -251,6 +308,23 @@ app.MapDelete("/assets/{assetId}", async ([FromServices] AssetService assetServi
     var success = await assetService.DeleteAsset(assetId);
     return success ? Results.NoContent() : Results.Problem("Delete failed.");
 });
+
+
+//Get /assets/images
+app.MapGet("/assets/{assetId}/images" , async ([FromServices] AssetService assetService, HttpContext ctx, string assetId) =>
+{
+    var userId = GetUserId(ctx);
+    if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
+    //calls the method in assetService to get assets image 
+    var images = await assetService.GetAssetImage(assetId);
+    //if the assets wasn't found then should get nothing back
+    if (images == null)
+    {
+        return Results.NotFound(new { error = "Asset not found" });
+    }
+
+    return Results.Ok(images);
+}).RequireAuthorization("ClerkAuthorization");
 
 // POST /assets/upload-image - Upload an image and get a URL
 app.MapPost("/assets/upload-image", async (IFormFile file, [FromServices] Cloudinary cloudinary) =>
@@ -278,7 +352,13 @@ app.MapPost("/assets/upload-image", async (IFormFile file, [FromServices] Cloudi
     return Results.Ok(new { url = uploadResult.SecureUrl.ToString() });
 })
 .DisableAntiforgery(); // Necessary for file uploads from non-form sources
+/*
 
+
+This begins the area with the maintenence api endpoints 
+
+
+*/
 // GET /assets/{assetId}/maintenance - Get all maintenance for one asset
 app.MapGet("/assets/{assetId}/maintenance", async (
     [FromServices] MaintenanceService maintenanceService,
@@ -335,16 +415,17 @@ app.MapPost("/assets/{assetId}/maintenance", async (
         AssetId = assetId, // Use assetId from route
         BrandName = request.BrandName,
         ProductName = request.ProductName,
-        PurchaseLocation = request.PurchaseLocation,
         CostPaid = request.CostPaid,
         MaintenanceDueDate = request.MaintenanceDueDate,
         MaintenanceTitle = request.MaintenanceTitle,
         MaintenanceDescription = request.MaintenanceDescription,
         MaintenanceStatus = request.MaintenanceStatus,
-        PreserveFromPrior = request.PreserveFromPrior,
         RequiredTools = request.RequiredTools,
         ToolLocation = request.ToolLocation
     };
+
+    // Sanitize Data
+    newRecord = InputSanitizer.SanitizeObject(newRecord);
 
     var createdRecord = await maintenanceService.CreateMaintenanceAsync(newRecord);
     return Results.Created($"/maintenance/{createdRecord.Id}", createdRecord);
@@ -391,15 +472,18 @@ app.MapPut("/maintenance/{maintenanceId}", async (
     // Update properties
     existingRecord.BrandName = request.BrandName;
     existingRecord.ProductName = request.ProductName;
-    existingRecord.PurchaseLocation = request.PurchaseLocation;
+    existingRecord.AssetCategory = request.AssetCategory;
     existingRecord.CostPaid = request.CostPaid;
     existingRecord.MaintenanceDueDate = request.MaintenanceDueDate;
     existingRecord.MaintenanceTitle = request.MaintenanceTitle;
     existingRecord.MaintenanceDescription = request.MaintenanceDescription;
     existingRecord.MaintenanceStatus = request.MaintenanceStatus;
-    existingRecord.PreserveFromPrior = request.PreserveFromPrior;
+    existingRecord.IsCompleted = request.IsCompleted;
     existingRecord.RequiredTools = request.RequiredTools;
     existingRecord.ToolLocation = request.ToolLocation;
+
+    // Sanitize data
+    existingRecord = InputSanitizer.SanitizeObject(existingRecord);
 
     var success = await maintenanceService.UpdateMaintenanceAsync(maintenanceId, existingRecord);
     return success ? Results.NoContent() : Results.Problem("Update failed.");
@@ -409,38 +493,30 @@ app.MapPut("/maintenance/{maintenanceId}", async (
 app.MapDelete("/maintenance/{maintenanceId}", async (
     [FromServices] MaintenanceService maintenanceService,
     [FromServices] AssetService assetService,
-    [FromServices] ILogger<Program> logger, // Inject logger
     HttpContext ctx,
     string maintenanceId) =>
 {
-    try
-    {
-        var userId = GetUserId(ctx);
-        if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
+    var userId = GetUserId(ctx);
+    if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
 
-        var record = await maintenanceService.GetMaintenanceByIdAsync(maintenanceId);
-        if (record is null) return Results.NotFound();
+    var record = await maintenanceService.GetMaintenanceByIdAsync(maintenanceId);
+    if (record is null) return Results.NotFound();
 
-        // Verify user owns the asset
-        var asset = await assetService.GetAssetByIdAsync(record.AssetId);
-        if (asset is null || asset.OwnerUserId != userId) return Results.Forbid();
+    // Verify user owns the asset
+    var asset = await assetService.GetAssetByIdAsync(record.AssetId);
+    if (asset is null || asset.OwnerUserId != userId) return Results.Forbid();
 
-        var success = await maintenanceService.DeleteMaintenanceAsync(maintenanceId);
-        if (!success)
-        {
-            logger.LogWarning("Failed to delete maintenance record {MaintenanceId}", maintenanceId);
-            return Results.Problem("Delete failed.");
-        }
-        
-        return Results.NoContent();
-    }
-    catch (Exception ex)
-    {
-        logger.LogError(ex, "An error occurred while deleting maintenance record {MaintenanceId}", maintenanceId);
-        return Results.Problem("An unexpected error occurred.", statusCode: 500);
-    }
+    var success = await maintenanceService.DeleteMaintenanceAsync(maintenanceId);
+    return success ? Results.NoContent() : Results.Problem("Delete failed.");
 });
+/*
 
+
+This begins the area with the user and unknown endpoints. 
+
+
+*/
+//This creats a user and gets the information needed from clerk 
 app.MapPost("/api/webhooks/clerk", [SwaggerRequestExample(typeof(ClerkWebhookPayload), typeof(ClerkWebhookExample))] async (
     [FromServices] UserService userService,
     [FromBody] ClerkWebhookPayload payload) =>
@@ -465,12 +541,14 @@ app.MapPost("/api/webhooks/clerk", [SwaggerRequestExample(typeof(ClerkWebhookPay
     return Results.BadRequest(new { message = $"Unhandled event type: {payload.Type}" });
 });
 
+//The reads all users (for dev purposes)
 app.MapGet("/users", async ([FromServices] UserService userService) =>
 {
     var users = await userService.GetAllUsersAsync();
     return Results.Ok(users);
 });
 
+//This read a specific user by their userId
 app.MapGet("/users/{userId}", async ([FromServices] UserService userService, string userId) =>
 {
     var user = await userService.GetByClerkIdAsync(userId);
@@ -483,6 +561,7 @@ app.MapGet("/users/{userId}", async ([FromServices] UserService userService, str
     return Results.Ok(user);
 });
 
+//This is used to update a users information 
 app.MapPatch("/users/{userId}", async ([FromServices] UserService userService, HttpContext ctx, string userId, [FromBody] ProfileUpdateRequest updateRequest) =>
 {
     var authenticatedUserId = GetUserId(ctx);
