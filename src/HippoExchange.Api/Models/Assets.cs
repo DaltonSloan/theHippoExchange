@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using HippoExchange.Api.Utilities;
 
 namespace HippoExchange.Api.Models
 {
@@ -28,8 +29,7 @@ namespace HippoExchange.Api.Models
         ErrorMessage = "Category name can only contain letters, and (-). ")]
         public string Category { get; set; } = string.Empty;
 
-        [Range(typeof(DateTime),"0001-01-01","2025-01-01", 
-        ErrorMessage = "Valid dates for the Property {0} between {1} and {2}")]
+        [DateNotInFuture]
         public DateTime PurchaseDate { get; set; }
 
         [Range(0, double.MaxValue, ErrorMessage = "Purchase value can't be negative")]
@@ -122,7 +122,7 @@ namespace HippoExchange.Api.Models
         ErrorMessage = "Category name can only contain letters, and (-). ")]
         public string Category { get; set; } = string.Empty;
 
-        [Range(typeof(DateTime),"1900-01-01","2025-01-01", 
+        [Range(typeof(DateTime),"1900-01-01","{DateTime.Today}", 
         ErrorMessage = "Valid dates for the Property {0} between {1} and {2}")]
         public DateTime PurchaseDate { get; set; }
 
