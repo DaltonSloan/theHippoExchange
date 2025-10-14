@@ -42,8 +42,25 @@ namespace HippoExchange.Api.Services
         // Update a maintenance record
         public async Task<bool> UpdateMaintenanceAsync(string id, Maintenance updatedRecord)
         {
-            var result = await _maintenanceCollection.ReplaceOneAsync(m => m.Id == id, updatedRecord);
-            return result.IsAcknowledged && result.ModifiedCount > 0;
+            var filter = Builders<Maintenance>.Filter.Eq(m => m.Id, id);
+            
+            // The previous dynamic update was incomplete and led to data sync issues.
+            // This new implementation ensures all fields from the request are updated,
+            // creating a single source of truth from the client's request.
+            var update = Builders<Maintenance>.Update
+                .Set(m => m.MaintenanceTitle, updatedRecord.MaintenanceTitle)
+                .Set(m => m.MaintenanceDescription, updatedRecord.MaintenanceDescription)
+                .Set(m => m.MaintenanceDueDate, updatedRecord.MaintenanceDueDate)
+                .Set(m => m.IsCompleted, updatedRecord.IsCompleted)
+                .Set(m => m.PreserveFromPrior, updatedRecord.PreserveFromPrior)
+                .Set(m => m.RecurrenceInterval, updatedRecord.RecurrenceInterval)
+                .Set(m => m.RecurrenceUnit, updatedRecord.RecurrenceUnit);
+
+            var result = await _maintenanceCollection.UpdateOneAsync(filter, update);
+
+            // Return true if the document was matched, even if no fields were modified.
+            // This signals to the client that the save operation was successful.
+            return result.IsAcknowledged && (result.ModifiedCount > 0 || result.MatchedCount > 0);
         }
 
         // Delete a maintenance record

@@ -310,7 +310,7 @@ app.MapDelete("/assets/{assetId}", async ([FromServices] AssetService assetServi
 });
 
 
-//Get /assets/images
+//Get /assets/{assetId}/images
 app.MapGet("/assets/{assetId}/images" , async ([FromServices] AssetService assetService, HttpContext ctx, string assetId) =>
 {
     var userId = GetUserId(ctx);
@@ -324,7 +324,7 @@ app.MapGet("/assets/{assetId}/images" , async ([FromServices] AssetService asset
     }
 
     return Results.Ok(images);
-}).RequireAuthorization("ClerkAuthorization");
+});
 
 // POST /assets/upload-image - Upload an image and get a URL
 app.MapPost("/assets/upload-image", async (IFormFile file, [FromServices] Cloudinary cloudinary) =>
@@ -421,7 +421,10 @@ app.MapPost("/assets/{assetId}/maintenance", async (
         MaintenanceDescription = request.MaintenanceDescription,
         MaintenanceStatus = request.MaintenanceStatus,
         RequiredTools = request.RequiredTools,
-        ToolLocation = request.ToolLocation
+        ToolLocation = request.ToolLocation,
+        PreserveFromPrior = request.PreserveFromPrior,
+        RecurrenceInterval = request.RecurrenceInterval,
+        RecurrenceUnit = request.RecurrenceUnit
     };
 
     // Sanitize Data
@@ -469,7 +472,7 @@ app.MapPut("/maintenance/{maintenanceId}", async (
     var asset = await assetService.GetAssetByIdAsync(existingRecord.AssetId);
     if (asset is null || asset.OwnerUserId != userId) return Results.Forbid();
 
-    // Update properties
+    // Update all properties from the request
     existingRecord.BrandName = request.BrandName;
     existingRecord.ProductName = request.ProductName;
     existingRecord.AssetCategory = request.AssetCategory;
@@ -481,12 +484,73 @@ app.MapPut("/maintenance/{maintenanceId}", async (
     existingRecord.IsCompleted = request.IsCompleted;
     existingRecord.RequiredTools = request.RequiredTools;
     existingRecord.ToolLocation = request.ToolLocation;
+    
+    // FIX: Add the missing recurrence properties
+    existingRecord.PreserveFromPrior = request.PreserveFromPrior;
+    existingRecord.RecurrenceInterval = request.RecurrenceInterval;
+    existingRecord.RecurrenceUnit = request.RecurrenceUnit;
 
     // Sanitize data
-    existingRecord = InputSanitizer.SanitizeObject(existingRecord);
+    var sanitizedRecord = InputSanitizer.SanitizeObject(existingRecord);
 
-    var success = await maintenanceService.UpdateMaintenanceAsync(maintenanceId, existingRecord);
-    return success ? Results.NoContent() : Results.Problem("Update failed.");
+    var success = await maintenanceService.UpdateMaintenanceAsync(maintenanceId, sanitizedRecord);
+    
+    return success 
+        ? Results.NoContent() 
+        : Results.Problem("Update failed.");
+});
+
+// PATCH /maintenance/{maintenanceId} - Partially update a maintenance record
+app.MapPatch("/maintenance/{maintenanceId}", async (
+    [FromServices] MaintenanceService maintenanceService,
+    [FromServices] AssetService assetService,
+    HttpContext ctx,
+    string maintenanceId,
+    [FromBody] PatchMaintenanceRequest request) =>
+{
+    var userId = GetUserId(ctx);
+    if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
+
+    var existingRecord = await maintenanceService.GetMaintenanceByIdAsync(maintenanceId);
+    if (existingRecord is null) return Results.NotFound();
+
+    // Verify user owns the asset
+    var asset = await assetService.GetAssetByIdAsync(existingRecord.AssetId);
+    if (asset is null || asset.OwnerUserId != userId) return Results.Forbid();
+
+    // Validate the incoming request
+    var validationResults = new List<ValidationResult>();
+    var context = new ValidationContext(request, null, null);
+    if (!Validator.TryValidateObject(request, context, validationResults, true))
+    {
+        return Results.BadRequest(new { errors = validationResults.Select(v => v.ErrorMessage) });
+    }
+
+    // Apply updates for provided fields
+    if (request.BrandName is not null) existingRecord.BrandName = request.BrandName;
+    if (request.ProductName is not null) existingRecord.ProductName = request.ProductName;
+    if (request.PurchaseLocation is not null) existingRecord.PurchaseLocation = request.PurchaseLocation;
+    if (request.AssetCategory is not null) existingRecord.AssetCategory = request.AssetCategory;
+    if (request.CostPaid.HasValue) existingRecord.CostPaid = request.CostPaid.Value;
+    if (request.MaintenanceDueDate.HasValue) existingRecord.MaintenanceDueDate = request.MaintenanceDueDate.Value;
+    if (request.MaintenanceTitle is not null) existingRecord.MaintenanceTitle = request.MaintenanceTitle;
+    if (request.MaintenanceDescription is not null) existingRecord.MaintenanceDescription = request.MaintenanceDescription;
+    if (request.MaintenanceStatus is not null) existingRecord.MaintenanceStatus = request.MaintenanceStatus;
+    if (request.IsCompleted.HasValue) existingRecord.IsCompleted = request.IsCompleted.Value;
+    if (request.RequiredTools is not null) existingRecord.RequiredTools = request.RequiredTools;
+    if (request.ToolLocation is not null) existingRecord.ToolLocation = request.ToolLocation;
+    if (request.PreserveFromPrior.HasValue) existingRecord.PreserveFromPrior = request.PreserveFromPrior.Value;
+    if (request.RecurrenceInterval.HasValue) existingRecord.RecurrenceInterval = request.RecurrenceInterval.Value;
+    if (request.RecurrenceUnit.HasValue) existingRecord.RecurrenceUnit = request.RecurrenceUnit.Value;
+
+    // Sanitize the entire object after patching
+    var sanitizedRecord = InputSanitizer.SanitizeObject(existingRecord);
+
+    var success = await maintenanceService.UpdateMaintenanceAsync(maintenanceId, sanitizedRecord);
+    
+    return success 
+        ? Results.NoContent() 
+        : Results.Problem("Update failed.");
 });
 
 // DELETE /maintenance/{maintenanceId} - Delete a maintenance record
