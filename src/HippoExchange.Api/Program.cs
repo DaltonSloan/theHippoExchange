@@ -310,7 +310,7 @@ app.MapDelete("/assets/{assetId}", async ([FromServices] AssetService assetServi
 });
 
 
-//Get /assets/images
+//Get /assets/{assetId}/images
 app.MapGet("/assets/{assetId}/images" , async ([FromServices] AssetService assetService, HttpContext ctx, string assetId) =>
 {
     var userId = GetUserId(ctx);
@@ -324,7 +324,7 @@ app.MapGet("/assets/{assetId}/images" , async ([FromServices] AssetService asset
     }
 
     return Results.Ok(images);
-}).RequireAuthorization("ClerkAuthorization");
+});
 
 // POST /assets/upload-image - Upload an image and get a URL
 app.MapPost("/assets/upload-image", async (IFormFile file, [FromServices] Cloudinary cloudinary) =>
