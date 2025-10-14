@@ -53,6 +53,7 @@ namespace HippoExchange.Api.Services
                 .Set(m => m.MaintenanceDueDate, updatedRecord.MaintenanceDueDate)
                 .Set(m => m.IsCompleted, updatedRecord.IsCompleted)
                 .Set(m => m.PreserveFromPrior, updatedRecord.PreserveFromPrior)
+                .Set(m => m.RequiredTools, updatedRecord.RequiredTools)
                 .Set(m => m.RecurrenceInterval, updatedRecord.RecurrenceInterval)
                 .Set(m => m.RecurrenceUnit, updatedRecord.RecurrenceUnit);
 

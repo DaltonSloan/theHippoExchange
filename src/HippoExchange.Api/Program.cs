@@ -420,7 +420,7 @@ app.MapPost("/assets/{assetId}/maintenance", async (
         MaintenanceTitle = request.MaintenanceTitle,
         MaintenanceDescription = request.MaintenanceDescription,
         MaintenanceStatus = request.MaintenanceStatus,
-        RequiredTools = request.RequiredTools,
+        RequiredTools = request.RequiredTools?.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(t => t.Trim()).ToList() ?? new List<string>(),
         ToolLocation = request.ToolLocation,
         PreserveFromPrior = request.PreserveFromPrior,
         RecurrenceInterval = request.RecurrenceInterval,
@@ -482,7 +482,7 @@ app.MapPut("/maintenance/{maintenanceId}", async (
     existingRecord.MaintenanceDescription = request.MaintenanceDescription;
     existingRecord.MaintenanceStatus = request.MaintenanceStatus;
     existingRecord.IsCompleted = request.IsCompleted;
-    existingRecord.RequiredTools = request.RequiredTools;
+    existingRecord.RequiredTools = request.RequiredTools?.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(t => t.Trim()).ToList() ?? new List<string>();
     existingRecord.ToolLocation = request.ToolLocation;
     
     // FIX: Add the missing recurrence properties
@@ -537,7 +537,7 @@ app.MapPatch("/maintenance/{maintenanceId}", async (
     if (request.MaintenanceDescription is not null) existingRecord.MaintenanceDescription = request.MaintenanceDescription;
     if (request.MaintenanceStatus is not null) existingRecord.MaintenanceStatus = request.MaintenanceStatus;
     if (request.IsCompleted.HasValue) existingRecord.IsCompleted = request.IsCompleted.Value;
-    if (request.RequiredTools is not null) existingRecord.RequiredTools = request.RequiredTools;
+    if (request.RequiredTools is not null) existingRecord.RequiredTools = request.RequiredTools.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(t => t.Trim()).ToList();
     if (request.ToolLocation is not null) existingRecord.ToolLocation = request.ToolLocation;
     if (request.PreserveFromPrior.HasValue) existingRecord.PreserveFromPrior = request.PreserveFromPrior.Value;
     if (request.RecurrenceInterval.HasValue) existingRecord.RecurrenceInterval = request.RecurrenceInterval.Value;

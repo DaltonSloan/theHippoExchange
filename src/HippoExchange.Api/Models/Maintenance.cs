@@ -82,9 +82,7 @@ namespace HippoExchange.Api.Models
         public bool IsCompleted { get; set; } = false; // or true if we need to change it.
 
         [Required(ErrorMessage = "At least one required tool must be specified.")]
-        [StringLength(maximumLength: 500, MinimumLength = 1,
-        ErrorMessage = "Required tools must be between 1 and 500 characters.")]
-        public string RequiredTools { get; set; } = string.Empty;
+        public List<string> RequiredTools { get; set; } = new List<string>();
 
         [Required(ErrorMessage = "Tool location is required.")]
         [StringLength(maximumLength: 200, MinimumLength = 2,
