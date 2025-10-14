@@ -239,4 +239,51 @@ namespace HippoExchange.Api.Models
         public RecurrenceUnit? RecurrenceUnit { get; set; }
         public int? RecurrenceInterval { get; set; }
     }
+
+    public class PatchMaintenanceRequest
+    {
+        [StringLength(maximumLength: 100, MinimumLength = 2, ErrorMessage = "Max length is 100 character and the minimum is 2.")]
+        [RegularExpression(@"^[a-zA-Z0-9\s\s\-\&']+$", ErrorMessage = "Brand name can only contain letter, numbers, spaces, (-), (&), and (').")]
+        public string? BrandName { get; set; }
+
+        [StringLength(maximumLength: 150, MinimumLength = 2, ErrorMessage = "Product name must be between 2 and 150 characters.")]
+        [RegularExpression(@"^[a-zA-Z0-9\s\s\-\&',\.]+$", ErrorMessage = "Product name can only contain letter, numbers, spaces, (-), (,), (.), (&), and (').")]
+        public string? ProductName { get; set; }
+
+        public string? PurchaseLocation { get; set; }
+
+        [StringLength(maximumLength: 100, MinimumLength = 2, ErrorMessage = "Category name must be between 2 and 100 characters.")]
+        [RegularExpression(@"^[a-zA-Z-]+$", ErrorMessage = "Category name can only contain letters, and (-). ")]
+        public string? AssetCategory { get; set; }
+
+        [Range(0.01, 1000000, ErrorMessage = "Cost must be between 0.01 and 1,000,000.")]
+        public decimal? CostPaid { get; set; }
+
+        [CustomValidation(typeof(Maintenance), nameof(Maintenance.ValidateFutureDate))]
+        public DateTime? MaintenanceDueDate { get; set; }
+
+        [StringLength(maximumLength: 100, MinimumLength = 2, ErrorMessage = "Maintenance title must be between 2 and 100 characters.")]
+        [RegularExpression(@"^a-zA-Z0-9\s\s\-\&',\.]+$", ErrorMessage = "Maintenance title can only contain letters, numbers, spaces, (-), (,), (.), (&), and (').")]
+        public string? MaintenanceTitle { get; set; }
+
+        [StringLength(maximumLength: 1000, ErrorMessage = "Maintenance description cannot exceed 1000 characters.")]
+        public string? MaintenanceDescription { get; set; }
+
+        [RegularExpression("Upcoming|Overdue|Completed", ErrorMessage = "Status must be Upcoming, Overdue, or Completed.")]
+        public string? MaintenanceStatus { get; set; }
+        
+        public bool? PreserveFromPrior { get; set; }
+        
+        public bool? IsCompleted { get; set; }
+
+        [MinLength(1, ErrorMessage = "At least one required tool must be specified.")]
+        public List<string>? RequiredTools { get; set; }
+
+        [StringLength(maximumLength: 200, MinimumLength = 2, ErrorMessage = "Tool location must be between 2 and 200 characters.")]
+        [RegularExpression(@"^[a-zA-Z0-9\s\s-\&',.]+$", ErrorMessage = "Tool location can only contain letters, numbers, spaces, (-), (,), (.), (&), and (').")]
+        public string? ToolLocation { get; set; }
+        
+        public RecurrenceUnit? RecurrenceUnit { get; set; }
+        public int? RecurrenceInterval { get; set; }
+    }
 }

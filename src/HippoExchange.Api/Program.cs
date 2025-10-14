@@ -500,6 +500,51 @@ app.MapPut("/maintenance/{maintenanceId}", async (
         : Results.Problem("Update failed.");
 });
 
+// PATCH /maintenance/{maintenanceId} - Partially update a maintenance record
+app.MapPatch("/maintenance/{maintenanceId}", async (
+    [FromServices] MaintenanceService maintenanceService,
+    [FromServices] AssetService assetService,
+    HttpContext ctx,
+    string maintenanceId,
+    [FromBody] PatchMaintenanceRequest request) =>
+{
+    var userId = GetUserId(ctx);
+    if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
+
+    var existingRecord = await maintenanceService.GetMaintenanceByIdAsync(maintenanceId);
+    if (existingRecord is null) return Results.NotFound();
+
+    // Verify user owns the asset
+    var asset = await assetService.GetAssetByIdAsync(existingRecord.AssetId);
+    if (asset is null || asset.OwnerUserId != userId) return Results.Forbid();
+
+    // Apply updates for provided fields
+    if (request.BrandName is not null) existingRecord.BrandName = request.BrandName;
+    if (request.ProductName is not null) existingRecord.ProductName = request.ProductName;
+    if (request.PurchaseLocation is not null) existingRecord.PurchaseLocation = request.PurchaseLocation;
+    if (request.AssetCategory is not null) existingRecord.AssetCategory = request.AssetCategory;
+    if (request.CostPaid.HasValue) existingRecord.CostPaid = request.CostPaid.Value;
+    if (request.MaintenanceDueDate.HasValue) existingRecord.MaintenanceDueDate = request.MaintenanceDueDate.Value;
+    if (request.MaintenanceTitle is not null) existingRecord.MaintenanceTitle = request.MaintenanceTitle;
+    if (request.MaintenanceDescription is not null) existingRecord.MaintenanceDescription = request.MaintenanceDescription;
+    if (request.MaintenanceStatus is not null) existingRecord.MaintenanceStatus = request.MaintenanceStatus;
+    if (request.IsCompleted.HasValue) existingRecord.IsCompleted = request.IsCompleted.Value;
+    if (request.RequiredTools is not null) existingRecord.RequiredTools = request.RequiredTools;
+    if (request.ToolLocation is not null) existingRecord.ToolLocation = request.ToolLocation;
+    if (request.PreserveFromPrior.HasValue) existingRecord.PreserveFromPrior = request.PreserveFromPrior.Value;
+    if (request.RecurrenceInterval.HasValue) existingRecord.RecurrenceInterval = request.RecurrenceInterval.Value;
+    if (request.RecurrenceUnit.HasValue) existingRecord.RecurrenceUnit = request.RecurrenceUnit.Value;
+
+    // Sanitize the entire object after patching
+    var sanitizedRecord = InputSanitizer.SanitizeObject(existingRecord);
+
+    var success = await maintenanceService.UpdateMaintenanceAsync(maintenanceId, sanitizedRecord);
+    
+    return success 
+        ? Results.NoContent() 
+        : Results.Problem("Update failed.");
+});
+
 // DELETE /maintenance/{maintenanceId} - Delete a maintenance record
 app.MapDelete("/maintenance/{maintenanceId}", async (
     [FromServices] MaintenanceService maintenanceService,
