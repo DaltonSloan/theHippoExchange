@@ -419,9 +419,6 @@ app.MapPost("/assets/{assetId}/maintenance", async (
         MaintenanceDueDate = request.MaintenanceDueDate,
         MaintenanceTitle = request.MaintenanceTitle,
         MaintenanceDescription = request.MaintenanceDescription,
-        MaintenanceStatus = request.MaintenanceStatus,
-        RequiredTools = request.RequiredTools,
-        ToolLocation = request.ToolLocation
     };
 
     // Sanitize Data
@@ -477,10 +474,7 @@ app.MapPut("/maintenance/{maintenanceId}", async (
     existingRecord.MaintenanceDueDate = request.MaintenanceDueDate;
     existingRecord.MaintenanceTitle = request.MaintenanceTitle;
     existingRecord.MaintenanceDescription = request.MaintenanceDescription;
-    existingRecord.MaintenanceStatus = request.MaintenanceStatus;
     existingRecord.IsCompleted = request.IsCompleted;
-    existingRecord.RequiredTools = request.RequiredTools;
-    existingRecord.ToolLocation = request.ToolLocation;
 
     // Sanitize data
     existingRecord = InputSanitizer.SanitizeObject(existingRecord);
