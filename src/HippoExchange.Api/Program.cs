@@ -421,7 +421,10 @@ app.MapPost("/assets/{assetId}/maintenance", async (
         MaintenanceDescription = request.MaintenanceDescription,
         MaintenanceStatus = request.MaintenanceStatus,
         RequiredTools = request.RequiredTools,
-        ToolLocation = request.ToolLocation
+        ToolLocation = request.ToolLocation,
+        PreserveFromPrior = request.PreserveFromPrior,
+        RecurrenceInterval = request.RecurrenceInterval,
+        RecurrenceUnit = request.RecurrenceUnit
     };
 
     // Sanitize Data
@@ -469,7 +472,7 @@ app.MapPut("/maintenance/{maintenanceId}", async (
     var asset = await assetService.GetAssetByIdAsync(existingRecord.AssetId);
     if (asset is null || asset.OwnerUserId != userId) return Results.Forbid();
 
-    // Update properties
+    // Update all properties from the request
     existingRecord.BrandName = request.BrandName;
     existingRecord.ProductName = request.ProductName;
     existingRecord.AssetCategory = request.AssetCategory;
@@ -479,14 +482,20 @@ app.MapPut("/maintenance/{maintenanceId}", async (
     existingRecord.MaintenanceDescription = request.MaintenanceDescription;
     existingRecord.MaintenanceStatus = request.MaintenanceStatus;
     existingRecord.IsCompleted = request.IsCompleted;
+    existingRecord.PreserveFromPrior = request.PreserveFromPrior;
+    existingRecord.RecurrenceInterval = request.RecurrenceInterval;
+    existingRecord.RecurrenceUnit = request.RecurrenceUnit;
     existingRecord.RequiredTools = request.RequiredTools;
     existingRecord.ToolLocation = request.ToolLocation;
 
-    // Sanitize data
-    existingRecord = InputSanitizer.SanitizeObject(existingRecord);
+    // Sanitize data before saving
+    var sanitizedRecord = InputSanitizer.SanitizeObject(existingRecord);
 
-    var success = await maintenanceService.UpdateMaintenanceAsync(maintenanceId, existingRecord);
-    return success ? Results.NoContent() : Results.Problem("Update failed.");
+    var success = await maintenanceService.UpdateMaintenanceAsync(maintenanceId, sanitizedRecord);
+    
+    return success 
+        ? Results.NoContent() 
+        : Results.Problem("Update failed. The record may not have been found or no changes were made.");
 });
 
 // DELETE /maintenance/{maintenanceId} - Delete a maintenance record
