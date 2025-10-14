@@ -7,6 +7,14 @@ namespace HippoExchange.Api.Models
 {
     public class Maintenance
     {
+        public Maintenance()
+        {
+            if (RequiredTools == null)
+            {
+                RequiredTools = new List<string>();
+            }
+        }
+
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string? Id { get; set; }
@@ -228,7 +236,7 @@ namespace HippoExchange.Api.Models
         public bool IsCompleted { get; set; }
 
         [MinLength(1, ErrorMessage = "At least one required tool must be specified.")]
-        public List<string> RequiredTools { get; set; } = new List<string>();
+        public List<string>? RequiredTools { get; set; } = new List<string>();
 
         [StringLength(maximumLength: 200,
         ErrorMessage = "Tool location must be between 0 and 200 characters.")]
