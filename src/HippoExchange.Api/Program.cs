@@ -419,9 +419,6 @@ app.MapPost("/assets/{assetId}/maintenance", async (
         MaintenanceDueDate = request.MaintenanceDueDate,
         MaintenanceTitle = request.MaintenanceTitle,
         MaintenanceDescription = request.MaintenanceDescription,
-        MaintenanceStatus = request.MaintenanceStatus,
-        RequiredTools = request.RequiredTools,
-        ToolLocation = request.ToolLocation
     };
 
     // Sanitize Data
@@ -477,10 +474,7 @@ app.MapPut("/maintenance/{maintenanceId}", async (
     existingRecord.MaintenanceDueDate = request.MaintenanceDueDate;
     existingRecord.MaintenanceTitle = request.MaintenanceTitle;
     existingRecord.MaintenanceDescription = request.MaintenanceDescription;
-    existingRecord.MaintenanceStatus = request.MaintenanceStatus;
     existingRecord.IsCompleted = request.IsCompleted;
-    existingRecord.RequiredTools = request.RequiredTools;
-    existingRecord.ToolLocation = request.ToolLocation;
 
     // Sanitize data
     existingRecord = InputSanitizer.SanitizeObject(existingRecord);
@@ -541,52 +535,6 @@ app.MapPost("/api/webhooks/clerk", [SwaggerRequestExample(typeof(ClerkWebhookPay
     return Results.BadRequest(new { message = $"Unhandled event type: {payload.Type}" });
 });
 
-//The reads all users (for dev purposes)
-app.MapGet("/users", async ([FromServices] UserService userService) =>
-{
-    var users = await userService.GetAllUsersAsync();
-    return Results.Ok(users);
-});
-
-//This read a specific user by their userId
-app.MapGet("/users/{userId}", async ([FromServices] UserService userService, string userId) =>
-{
-    var user = await userService.GetByClerkIdAsync(userId);
-
-    if (user == null)
-    {
-        return Results.NotFound(new { message = "User not found" });
-    }
-
-    return Results.Ok(user);
-});
-
-//This is used to update a users information 
-app.MapPatch("/users/{userId}", async ([FromServices] UserService userService, HttpContext ctx, string userId, [FromBody] ProfileUpdateRequest updateRequest) =>
-{
-    var authenticatedUserId = GetUserId(ctx);
-    if (string.IsNullOrWhiteSpace(authenticatedUserId) || authenticatedUserId != userId)
-    {
-        return Results.Unauthorized();
-    }
-
-    var success = await userService.UpdateUserProfileAsync(userId, updateRequest);
-    if (!success)
-    {
-        return Results.NotFound(new { message = "User not found or profile not updated." });
-    }
-
-    return Results.Ok(new { message = "Profile updated successfully." });
-});
-// This is the old DELETE endpoint, which is now replaced by the webhook-based one above.
-// I'm removing it to avoid confusion.
-// app.MapDelete("/users/{userId}", async ([FromServices] UserService userService, string userId) =>
-// {
-//     await userService.DeleteUserAsync(userId);
-//     return Results.NoContent();
-// });
-
-// POST /api/admin/seed - Seed the database with demo data
 app.MapPost("/api/admin/seed", async ([FromServices] DatabaseSeeder seeder) =>
 {
     try
