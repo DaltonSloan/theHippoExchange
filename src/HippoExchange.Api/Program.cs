@@ -518,6 +518,14 @@ app.MapPatch("/maintenance/{maintenanceId}", async (
     var asset = await assetService.GetAssetByIdAsync(existingRecord.AssetId);
     if (asset is null || asset.OwnerUserId != userId) return Results.Forbid();
 
+    // Validate the incoming request
+    var validationResults = new List<ValidationResult>();
+    var context = new ValidationContext(request, null, null);
+    if (!Validator.TryValidateObject(request, context, validationResults, true))
+    {
+        return Results.BadRequest(new { errors = validationResults.Select(v => v.ErrorMessage) });
+    }
+
     // Apply updates for provided fields
     if (request.BrandName is not null) existingRecord.BrandName = request.BrandName;
     if (request.ProductName is not null) existingRecord.ProductName = request.ProductName;
