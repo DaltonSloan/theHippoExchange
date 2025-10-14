@@ -482,20 +482,22 @@ app.MapPut("/maintenance/{maintenanceId}", async (
     existingRecord.MaintenanceDescription = request.MaintenanceDescription;
     existingRecord.MaintenanceStatus = request.MaintenanceStatus;
     existingRecord.IsCompleted = request.IsCompleted;
+    existingRecord.RequiredTools = request.RequiredTools;
+    existingRecord.ToolLocation = request.ToolLocation;
+    
+    // FIX: Add the missing recurrence properties
     existingRecord.PreserveFromPrior = request.PreserveFromPrior;
     existingRecord.RecurrenceInterval = request.RecurrenceInterval;
     existingRecord.RecurrenceUnit = request.RecurrenceUnit;
-    existingRecord.RequiredTools = request.RequiredTools;
-    existingRecord.ToolLocation = request.ToolLocation;
 
-    // Sanitize data before saving
+    // Sanitize data
     var sanitizedRecord = InputSanitizer.SanitizeObject(existingRecord);
 
     var success = await maintenanceService.UpdateMaintenanceAsync(maintenanceId, sanitizedRecord);
     
     return success 
         ? Results.NoContent() 
-        : Results.Problem("Update failed. The record may not have been found or no changes were made.");
+        : Results.Problem("Update failed.");
 });
 
 // DELETE /maintenance/{maintenanceId} - Delete a maintenance record
