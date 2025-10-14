@@ -35,8 +35,8 @@ namespace HippoExchange.Api.Models
         [Required(ErrorMessage = "Category is required.")]
         [StringLength(maximumLength: 100, MinimumLength = 2,
         ErrorMessage = "Category name must be between 2 and 100 characters.")]
-        [RegularExpression(@"^[a-zA-Z-]+$",
-        ErrorMessage = "Category name can only contain letters, and (-). ")]
+        [RegularExpression(@"^[a-zA-Z\s\-]+$",
+        ErrorMessage = "Category name can only contain letters, spaces, and (-).")]
         public string AssetCategory { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Cost paid is required.")]
@@ -51,15 +51,15 @@ namespace HippoExchange.Api.Models
         //Custom validator
         public static ValidationResult? ValidateFutureDate(DateTime date, ValidationContext context)
         {
-            if (date < DateTime.Today)
+            if (date.Date < DateTime.Today)
                 return new ValidationResult("Maintenance due date must be today or in the future.");
             return ValidationResult.Success;
         }
 
         [Required(ErrorMessage = "Maintenance title is required.")]
         [StringLength(maximumLength: 100, MinimumLength = 2,
-        ErrorMessage = "Maintenance title must be between 22 and 100 characters.")]
-        [RegularExpression(@"^a-zA-Z0-9\s\s\-\&',\.]+$",
+        ErrorMessage = "Maintenance title must be between 2 and 100 characters.")]
+        [RegularExpression(@"^[a-zA-Z0-9\s\-\&',\.]+$",
         ErrorMessage = "Maintenance title can only contain letters, numbers, spaces, (-), (,), (.), (&), and (').")]
         public string MaintenanceTitle { get; set; } = string.Empty;
 
@@ -116,8 +116,8 @@ namespace HippoExchange.Api.Models
         [Required(ErrorMessage = "Category is required.")]
         [StringLength(maximumLength: 100, MinimumLength = 2,
         ErrorMessage = "Category name must be between 2 and 100 characters.")]
-        [RegularExpression(@"^[a-zA-Z-]+$",
-        ErrorMessage = "Category name can only contain letters, and (-). ")]
+        [RegularExpression(@"^[a-zA-Z\s\-]+$",
+        ErrorMessage = "Category name can only contain letters, spaces, and (-).")]
         public string AssetCategory { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Cost paid is required.")]
@@ -132,15 +132,15 @@ namespace HippoExchange.Api.Models
         //Custom validator
         public static ValidationResult? ValidateFutureDate(DateTime date, ValidationContext context)
         {
-            if (date < DateTime.Today)
+            if (date.Date < DateTime.Today)
                 return new ValidationResult("Maintenance due date must be today or in the future.");
             return ValidationResult.Success;
         }
 
         [Required(ErrorMessage = "Maintenance title is required.")]
         [StringLength(maximumLength: 100, MinimumLength = 2,
-        ErrorMessage = "Maintenance title must be between 22 and 100 characters.")]
-        [RegularExpression(@"^a-zA-Z0-9\s\s\-\&',\.]+$",
+        ErrorMessage = "Maintenance title must be between 2 and 100 characters.")]
+        [RegularExpression(@"^[a-zA-Z0-9\s\-\&',\.]+$",
         ErrorMessage = "Maintenance title can only contain letters, numbers, spaces, (-), (,), (.), (&), and (').")]
         public string MaintenanceTitle { get; set; } = string.Empty;
 
@@ -191,8 +191,8 @@ namespace HippoExchange.Api.Models
 
         [StringLength(maximumLength: 100,
         ErrorMessage = "Category name must be between 2 and 100 characters.")]
-        [RegularExpression(@"^[a-zA-Z-]+$",
-        ErrorMessage = "Category name can only contain letters, and (-). ")]
+        [RegularExpression(@"^[a-zA-Z\s\-]+$",
+        ErrorMessage = "Category name can only contain letters, spaces, and (-).")]
         public string AssetCategory { get; set; } = string.Empty;
 
         [Range(0.01, 1000000,
@@ -205,14 +205,14 @@ namespace HippoExchange.Api.Models
         //Custom validator
         public static ValidationResult? ValidateFutureDate(DateTime date, ValidationContext context)
         {
-            if (date < DateTime.Today)
+            if (date.Date < DateTime.Today)
                 return new ValidationResult("Maintenance due date must be today or in the future.");
             return ValidationResult.Success;
         }
 
         [StringLength(maximumLength: 100, MinimumLength = 0,
         ErrorMessage = "Maintenance title must be between 0 and 100 characters.")]
-        [RegularExpression(@"^a-zA-Z0-9\s\s\-\&',\.]+$",
+        [RegularExpression(@"^[a-zA-Z0-9\s\-\&',\.]+$",
         ErrorMessage = "Maintenance title can only contain letters, numbers, spaces, (-), (,), (.), (&), and (').")]
         public string MaintenanceTitle { get; set; } = string.Empty;
 
@@ -253,7 +253,7 @@ namespace HippoExchange.Api.Models
         public string? PurchaseLocation { get; set; }
 
         [StringLength(maximumLength: 100, MinimumLength = 2, ErrorMessage = "Category name must be between 2 and 100 characters.")]
-        [RegularExpression(@"^[a-zA-Z-]+$", ErrorMessage = "Category name can only contain letters, and (-). ")]
+        [RegularExpression(@"^[a-zA-Z\s\-]+$", ErrorMessage = "Category name can only contain letters, spaces, and (-). ")]
         public string? AssetCategory { get; set; }
 
         [Range(0.01, 1000000, ErrorMessage = "Cost must be between 0.01 and 1,000,000.")]
@@ -263,7 +263,7 @@ namespace HippoExchange.Api.Models
         public DateTime? MaintenanceDueDate { get; set; }
 
         [StringLength(maximumLength: 100, MinimumLength = 2, ErrorMessage = "Maintenance title must be between 2 and 100 characters.")]
-        [RegularExpression(@"^a-zA-Z0-9\s\s\-\&',\.]+$", ErrorMessage = "Maintenance title can only contain letters, numbers, spaces, (-), (,), (.), (&), and (').")]
+        [RegularExpression(@"^[a-zA-Z0-9\s\-\&',\.]+$", ErrorMessage = "Maintenance title can only contain letters, numbers, spaces, (-), (,), (.), (&), and (').")]
         public string? MaintenanceTitle { get; set; }
 
         [StringLength(maximumLength: 1000, ErrorMessage = "Maintenance description cannot exceed 1000 characters.")]
