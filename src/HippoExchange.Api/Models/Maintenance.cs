@@ -86,6 +86,10 @@ namespace HippoExchange.Api.Models
         [RegularExpression(@"^[a-zA-Z0-9\s\s-\&',.]+$",
         ErrorMessage = "Tool location can only contain letters, numbers, spaces, (-), (,), (.), (&), and (').")]
         public string ToolLocation { get; set; } = string.Empty;
+
+        [BsonRepresentation(BsonType.String)]
+        public RecurrenceUnit? RecurrenceUnit { get; set; }
+        public int? RecurrenceInterval { get; set; }
     }
 
     public class CreateMaintenanceRequest
@@ -163,6 +167,10 @@ namespace HippoExchange.Api.Models
         [RegularExpression(@"^[a-zA-Z0-9\s\s-\&',.]+$",
         ErrorMessage = "Tool location can only contain letters, numbers, spaces, (-), (,), (.), (&), and (').")]
         public string ToolLocation { get; set; } = string.Empty;
+
+        [BsonRepresentation(BsonType.String)]
+        public RecurrenceUnit? RecurrenceUnit { get; set; }
+        public int? RecurrenceInterval { get; set; }
     }
 
     public class UpdateMaintenanceRequest

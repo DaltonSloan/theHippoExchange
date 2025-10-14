@@ -42,7 +42,32 @@ namespace HippoExchange.Api.Services
         // Update a maintenance record
         public async Task<bool> UpdateMaintenanceAsync(string id, Maintenance updatedRecord)
         {
-            var result = await _maintenanceCollection.ReplaceOneAsync(m => m.Id == id, updatedRecord);
+            var filter = Builders<Maintenance>.Filter.Eq(m => m.Id, id);
+            var updateBuilder = Builders<Maintenance>.Update;
+            var updateDefinition = new List<UpdateDefinition<Maintenance>>();
+
+            // Dynamically build the update definition based on the provided fields
+            if (updatedRecord.MaintenanceTitle != null)
+                updateDefinition.Add(updateBuilder.Set(m => m.MaintenanceTitle, updatedRecord.MaintenanceTitle));
+            if (updatedRecord.MaintenanceDescription != null)
+                updateDefinition.Add(updateBuilder.Set(m => m.MaintenanceDescription, updatedRecord.MaintenanceDescription));
+            if (updatedRecord.MaintenanceDueDate != default)
+                updateDefinition.Add(updateBuilder.Set(m => m.MaintenanceDueDate, updatedRecord.MaintenanceDueDate));
+            
+            updateDefinition.Add(updateBuilder.Set(m => m.IsCompleted, updatedRecord.IsCompleted));
+            updateDefinition.Add(updateBuilder.Set(m => m.PreserveFromPrior, updatedRecord.PreserveFromPrior));
+            updateDefinition.Add(updateBuilder.Set(m => m.RecurrenceInterval, updatedRecord.RecurrenceInterval));
+            updateDefinition.Add(updateBuilder.Set(m => m.RecurrenceUnit, updatedRecord.RecurrenceUnit));
+            
+            if (!updateDefinition.Any())
+            {
+                // Nothing to update
+                return true;
+            }
+
+            var combinedUpdate = updateBuilder.Combine(updateDefinition);
+            var result = await _maintenanceCollection.UpdateOneAsync(filter, combinedUpdate);
+            
             return result.IsAcknowledged && result.ModifiedCount > 0;
         }
 
