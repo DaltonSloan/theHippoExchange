@@ -59,7 +59,7 @@ namespace HippoExchange.Api.Models
         [Required(ErrorMessage = "Maintenance title is required.")]
         [StringLength(maximumLength: 100, MinimumLength = 2,
         ErrorMessage = "Maintenance title must be between 22 and 100 characters.")]
-        [RegularExpression(@"^a-zA-Z0-9\s\s\-\&',\.]+$",
+        [RegularExpression(@"^[a-zA-Z0-9\s\s\-\&',\.]+$",
         ErrorMessage = "Maintenance title can only contain letters, numbers, spaces, (-), (,), (.), (&), and (').")]
         public string MaintenanceTitle { get; set; } = string.Empty;
 
@@ -77,8 +77,9 @@ namespace HippoExchange.Api.Models
         public bool IsCompleted { get; set; } = false; // or true if we need to change it.
 
         [Required(ErrorMessage = "At least one required tool must be specified.")]
-        [MinLength(1, ErrorMessage = "At least one required tool must be specified.")]
-        public List<string> RequiredTools { get; set; } = new List<string>();
+        [StringLength(maximumLength: 500, MinimumLength = 1,
+        ErrorMessage = "Required tools must be between 1 and 500 characters.")]
+        public string RequiredTools { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Tool location is required.")]
         [StringLength(maximumLength: 200, MinimumLength = 2,
@@ -136,7 +137,7 @@ namespace HippoExchange.Api.Models
         [Required(ErrorMessage = "Maintenance title is required.")]
         [StringLength(maximumLength: 100, MinimumLength = 2,
         ErrorMessage = "Maintenance title must be between 22 and 100 characters.")]
-        [RegularExpression(@"^a-zA-Z0-9\s\s\-\&',\.]+$",
+        [RegularExpression(@"^[a-zA-Z0-9\s\s\-\&',\.]+$",
         ErrorMessage = "Maintenance title can only contain letters, numbers, spaces, (-), (,), (.), (&), and (').")]
         public string MaintenanceTitle { get; set; } = string.Empty;
 
@@ -154,8 +155,9 @@ namespace HippoExchange.Api.Models
         public bool IsCompleted { get; set; } = false;
 
         [Required(ErrorMessage = "At least one required tool must be specified.")]
-        [MinLength(1, ErrorMessage = "At least one required tool must be specified.")]
-        public List<string> RequiredTools { get; set; } = new List<string>();
+        [StringLength(maximumLength: 500, MinimumLength = 1,
+        ErrorMessage = "Required tools must be between 1 and 500 characters.")]
+        public string RequiredTools { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Tool location is required.")]
         [StringLength(maximumLength: 200, MinimumLength = 2,
@@ -204,7 +206,7 @@ namespace HippoExchange.Api.Models
 
         [StringLength(maximumLength: 100, MinimumLength = 0,
         ErrorMessage = "Maintenance title must be between 0 and 100 characters.")]
-        [RegularExpression(@"^a-zA-Z0-9\s\s\-\&',\.]+$",
+        [RegularExpression(@"^[a-zA-Z0-9\s\s\-\&',\.]+$",
         ErrorMessage = "Maintenance title can only contain letters, numbers, spaces, (-), (,), (.), (&), and (').")]
         public string MaintenanceTitle { get; set; } = string.Empty;
 
@@ -219,8 +221,9 @@ namespace HippoExchange.Api.Models
         
         public bool IsCompleted { get; set; }
 
-        [MinLength(1, ErrorMessage = "At least one required tool must be specified.")]
-        public List<string> RequiredTools { get; set; } = new List<string>();
+        [StringLength(maximumLength: 500, MinimumLength = 1,
+        ErrorMessage = "Required tools must be between 1 and 500 characters.")]
+        public string RequiredTools { get; set; } = string.Empty;
 
         [StringLength(maximumLength: 200,
         ErrorMessage = "Tool location must be between 0 and 200 characters.")]
