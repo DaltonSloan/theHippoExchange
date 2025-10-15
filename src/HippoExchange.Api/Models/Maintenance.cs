@@ -79,7 +79,7 @@ namespace HippoExchange.Api.Models
 
         public bool PreserveFromPrior { get; set; }
 
-        public bool IsCompleted { get; set; } = false; // or true if we need to change it.
+        public bool IsCompleted { get; set; }
 
         [Required(ErrorMessage = "At least one required tool must be specified.")]
         public List<string> RequiredTools { get; set; } = new List<string>();
