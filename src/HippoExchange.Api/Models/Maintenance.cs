@@ -164,7 +164,7 @@ namespace HippoExchange.Api.Models
         [Required(ErrorMessage = "At least one required tool must be specified.")]
         [StringLength(maximumLength: 500, MinimumLength = 1,
         ErrorMessage = "Required tools must be between 1 and 500 characters.")]
-        public string RequiredTools { get; set; } = string.Empty;
+        public List<string> RequiredTools { get; set; } = new List<string>();
 
         [Required(ErrorMessage = "Tool location is required.")]
         [StringLength(maximumLength: 200, MinimumLength = 2,
@@ -234,7 +234,7 @@ namespace HippoExchange.Api.Models
 
         [StringLength(maximumLength: 500, MinimumLength = 1,
         ErrorMessage = "Required tools must be between 1 and 500 characters.")]
-        public string RequiredTools { get; set; } = string.Empty;
+        public List<string> RequiredTools { get; set; } = new List<string>();
 
         [StringLength(maximumLength: 200,
         ErrorMessage = "Tool location must be between 0 and 200 characters.")]
@@ -284,7 +284,7 @@ namespace HippoExchange.Api.Models
 
         [StringLength(maximumLength: 500, MinimumLength = 1,
         ErrorMessage = "Required tools must be between 1 and 500 characters.")]
-        public string? RequiredTools { get; set; }
+        public List<string> RequiredTools { get; set; } = new List<string>();
 
         [StringLength(maximumLength: 200, MinimumLength = 2, ErrorMessage = "Tool location must be between 2 and 200 characters.")]
         [RegularExpression(@"^[a-zA-Z0-9\s\s-\&',.]+$", ErrorMessage = "Tool location can only contain letters, numbers, spaces, (-), (,), (.), (&), and (').")]
