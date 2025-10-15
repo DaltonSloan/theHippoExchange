@@ -4,6 +4,13 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace HippoExchange.Api.Models
 {
+    public enum AssetStatus
+    {
+        Available,
+        In_Repair,
+        Unlisted
+    }
+
     public class Assets
     {
         [BsonId]
@@ -28,8 +35,7 @@ namespace HippoExchange.Api.Models
         ErrorMessage = "Category name can only contain letters, and (-). ")]
         public string Category { get; set; } = string.Empty;
 
-        [Range(typeof(DateTime),"1900-01-01","2025-01-01", 
-        ErrorMessage = "Valid dates for the Property {0} between {1} and {2}")]
+        [CustomValidation(typeof(Assets), nameof(ValidatePastOrPresentDate))]
         public DateTime PurchaseDate { get; set; }
 
         [Range(0, double.MaxValue, ErrorMessage = "Purchase value can't be negative")]
@@ -49,10 +55,18 @@ namespace HippoExchange.Api.Models
         public string OwnerUserId { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Status is required.")]
-        [RegularExpression("Available|In_Repair|Unlisted", ErrorMessage = "Status must be Available, In_Repair, or Unlisted.")]
-        public string Status { get; set; } = string.Empty;
+        [EnumDataType(typeof(AssetStatus))]
+        [BsonRepresentation(BsonType.String)]
+        public AssetStatus Status { get; set; }
 
         public bool Favorite { get; set; } = false;
+
+        public static ValidationResult? ValidatePastOrPresentDate(DateTime date, ValidationContext context)
+        {
+            if (date.ToUniversalTime().Date > DateTime.UtcNow.Date)
+                return new ValidationResult("Purchase date cannot be in the future.");
+            return ValidationResult.Success;
+        }
     }
 
     public class CreateAssetRequest
@@ -75,8 +89,7 @@ namespace HippoExchange.Api.Models
         ErrorMessage = "Category name can only contain letters, and (-). ")]
         public string Category { get; set; } = string.Empty;
 
-        [Range(typeof(DateTime),"1900-01-01","2025-01-01", 
-        ErrorMessage = "Valid dates for the Property {0} between {1} and {2}")]
+        [CustomValidation(typeof(Assets), nameof(Assets.ValidatePastOrPresentDate))]
         public DateTime PurchaseDate { get; set; }
 
         [Range(0, double.MaxValue, ErrorMessage = "Purchase value can't be negative")]
@@ -96,8 +109,8 @@ namespace HippoExchange.Api.Models
         public string OwnerUserId { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Status is required.")]
-        [RegularExpression("Available|In_Repair|Unlisted", ErrorMessage = "Status must be Available, In_Repair, or Unlisted.")]
-        public string Status { get; set; } = string.Empty;
+        [EnumDataType(typeof(AssetStatus))]
+        public AssetStatus Status { get; set; }
 
         public bool Favorite { get; set; } = false;
     }
@@ -122,8 +135,7 @@ namespace HippoExchange.Api.Models
         ErrorMessage = "Category name can only contain letters, and (-). ")]
         public string Category { get; set; } = string.Empty;
 
-        [Range(typeof(DateTime),"1900-01-01","2025-01-01", 
-        ErrorMessage = "Valid dates for the Property {0} between {1} and {2}")]
+        [CustomValidation(typeof(Assets), nameof(Assets.ValidatePastOrPresentDate))]
         public DateTime PurchaseDate { get; set; }
 
         [Range(0, double.MaxValue, ErrorMessage = "Purchase value can't be negative")]
@@ -140,10 +152,9 @@ namespace HippoExchange.Api.Models
         public string ConditionDescription { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Status is required.")]
-        [RegularExpression("Available|In_Repair|Unlisted", ErrorMessage = "Status must be Available, In_Repair, or Unlisted.")]
-        public string Status { get; set; } = string.Empty;
+        [EnumDataType(typeof(AssetStatus))]
+        public AssetStatus Status { get; set; }
 
         public bool Favorite { get; set; }
     }
 }
-
