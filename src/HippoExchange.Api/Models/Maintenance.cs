@@ -162,8 +162,6 @@ namespace HippoExchange.Api.Models
         public bool IsCompleted { get; set; } = false;
 
         [Required(ErrorMessage = "At least one required tool must be specified.")]
-        [StringLength(maximumLength: 500, MinimumLength = 1,
-        ErrorMessage = "Required tools must be between 1 and 500 characters.")]
         public List<string> RequiredTools { get; set; } = new List<string>();
 
         [Required(ErrorMessage = "Tool location is required.")]
@@ -232,8 +230,6 @@ namespace HippoExchange.Api.Models
         
         public bool IsCompleted { get; set; }
 
-        [StringLength(maximumLength: 500, MinimumLength = 1,
-        ErrorMessage = "Required tools must be between 1 and 500 characters.")]
         public List<string> RequiredTools { get; set; } = new List<string>();
 
         [StringLength(maximumLength: 200,
@@ -282,8 +278,6 @@ namespace HippoExchange.Api.Models
         
         public bool? IsCompleted { get; set; }
 
-        [StringLength(maximumLength: 500, MinimumLength = 1,
-        ErrorMessage = "Required tools must be between 1 and 500 characters.")]
         public List<string> RequiredTools { get; set; } = new List<string>();
 
         [StringLength(maximumLength: 200, MinimumLength = 2, ErrorMessage = "Tool location must be between 2 and 200 characters.")]
