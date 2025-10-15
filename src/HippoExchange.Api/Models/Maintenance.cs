@@ -54,10 +54,21 @@ namespace HippoExchange.Api.Models
         public DateTime MaintenanceDueDate { get; set; }
 
         //Custom validator
-        public static ValidationResult? ValidateFutureDate(DateTime date, ValidationContext context)
+        public static ValidationResult? ValidateFutureDate(object? value, ValidationContext context)
         {
-            if (date.ToUniversalTime().Date < DateTime.UtcNow.Date)
-                return new ValidationResult("Maintenance due date must be today or in the future.");
+            if (value is null)
+            {
+                // If the value is null, validation passes. 
+                // The [Required] attribute should be used to enforce that a value is present.
+                return ValidationResult.Success;
+            }
+
+            if (value is DateTime date)
+            {
+                if (date.ToUniversalTime().Date < DateTime.UtcNow.Date)
+                    return new ValidationResult("Maintenance due date must be today or in the future.");
+            }
+            
             return ValidationResult.Success;
         }
 
