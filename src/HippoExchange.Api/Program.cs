@@ -205,7 +205,7 @@ app.MapPost("/assets", async ([FromServices] AssetService assetService, HttpCont
 
     var createdAsset = await assetService.CreateAssetAsync(newAsset);
     return Results.Created($"/assets/{createdAsset.Id}", createdAsset);
-});
+}).AllowAnonymous();
 
 //Patch /assets/{assetId} - patches a new value for the favorite attribute for an asset 
 app.MapPatch("/assets/{assetId}", async ([FromServices] AssetService assetService, HttpContext ctx, string assetId, [FromBody] bool isFavorite) =>
@@ -225,7 +225,7 @@ app.MapPatch("/assets/{assetId}", async ([FromServices] AssetService assetServic
     return success
         ? Results.Ok(new { message = $"Favorite status updated to {isFavorite}." })
         : Results.NotFound(new { error = "Asset not found or no changes made." });
-});
+}).AllowAnonymous();
 
 
 // GET /assets - Get all assets for the current user
@@ -236,7 +236,7 @@ app.MapGet("/assets", async ([FromServices] AssetService assetService, HttpConte
 
     var assets = await assetService.GetAssetsByOwnerIdAsync(userId);
     return Results.Ok(assets);
-});
+}).AllowAnonymous();
 
 // GET /assets/{assetId} - Get a specific asset
 app.MapGet("/assets/{assetId}", async ([FromServices] AssetService assetService, HttpContext ctx, string assetId) =>
@@ -249,7 +249,7 @@ app.MapGet("/assets/{assetId}", async ([FromServices] AssetService assetService,
     if (asset.OwnerUserId != userId) return Results.Forbid();
 
     return Results.Ok(asset);
-});
+}).AllowAnonymous();
 
 // PUT /assets/{assetId} - Update an asset
 app.MapPut("/assets/{assetId}", async ([FromServices] AssetService assetService, HttpContext ctx, string assetId, [FromBody] UpdateAssetRequest updatedAssetRequest) =>
@@ -293,7 +293,7 @@ app.MapPut("/assets/{assetId}", async ([FromServices] AssetService assetService,
 
     var success = await assetService.ReplaceAssetAsync(assetId, updatedAsset);
     return success ? Results.NoContent() : Results.Problem("Update failed.");
-});
+}).AllowAnonymous();
 
 // DELETE /assets/{assetId} - Delete an asset
 app.MapDelete("/assets/{assetId}", async ([FromServices] AssetService assetService, HttpContext ctx, string assetId) =>
@@ -307,7 +307,7 @@ app.MapDelete("/assets/{assetId}", async ([FromServices] AssetService assetServi
 
     var success = await assetService.DeleteAsset(assetId);
     return success ? Results.NoContent() : Results.Problem("Delete failed.");
-});
+}).AllowAnonymous();
 
 
 //Get /assets/{assetId}/images
@@ -324,7 +324,7 @@ app.MapGet("/assets/{assetId}/images" , async ([FromServices] AssetService asset
     }
 
     return Results.Ok(images);
-});
+}).AllowAnonymous();
 
 // POST /assets/upload-image - Upload an image and get a URL
 app.MapPost("/assets/upload-image", async (IFormFile file, [FromServices] Cloudinary cloudinary) =>
@@ -351,7 +351,8 @@ app.MapPost("/assets/upload-image", async (IFormFile file, [FromServices] Cloudi
 
     return Results.Ok(new { url = uploadResult.SecureUrl.ToString() });
 })
-.DisableAntiforgery(); // Necessary for file uploads from non-form sources
+.DisableAntiforgery()
+.AllowAnonymous(); // Necessary for file uploads from non-form sources
 /*
 
 
@@ -366,7 +367,7 @@ app.MapGet("/assets/{assetId}/maintenance", async (
     {
         var records = await maintenanceService.GetMaintenanceByAssetIdAsync(assetId);
         return Results.Ok(records);
-    });
+    }).AllowAnonymous();
 
 // GET /maintenance - Get all maintenance records for the current user
 app.MapGet("/maintenance", async (
@@ -392,7 +393,7 @@ app.MapGet("/maintenance", async (
         // Fetch all maintenance records for those asset IDs in a single query
         var records = await maintenanceService.GetMaintenanceByAssetIdsAsync(assetIds);
         return Results.Ok(records);
-    });
+    }).AllowAnonymous();
 
 // POST /assets/{assetId}/maintenance - Create a new maintenance record for a specific asset
 app.MapPost("/assets/{assetId}/maintenance", async (
@@ -432,7 +433,7 @@ app.MapPost("/assets/{assetId}/maintenance", async (
 
     var createdRecord = await maintenanceService.CreateMaintenanceAsync(newRecord);
     return Results.Created($"/maintenance/{createdRecord.Id}", createdRecord);
-});
+}).AllowAnonymous();
 
 // GET /maintenance/{maintenanceId} - Get a single maintenance record
 app.MapGet("/maintenance/{maintenanceId}", async (
@@ -452,7 +453,7 @@ app.MapGet("/maintenance/{maintenanceId}", async (
     if (asset is null || asset.OwnerUserId != userId) return Results.Forbid();
 
     return Results.Ok(record);
-});
+}).AllowAnonymous();
 
 // PUT /maintenance/{maintenanceId} - Update a maintenance record
 app.MapPut("/maintenance/{maintenanceId}", async (
@@ -498,7 +499,7 @@ app.MapPut("/maintenance/{maintenanceId}", async (
     return success 
         ? Results.NoContent() 
         : Results.Problem("Update failed.");
-});
+}).AllowAnonymous();
 
 // PATCH /maintenance/{maintenanceId} - Partially update a maintenance record
 app.MapPatch("/maintenance/{maintenanceId}", async (
@@ -551,7 +552,7 @@ app.MapPatch("/maintenance/{maintenanceId}", async (
     return success 
         ? Results.NoContent() 
         : Results.Problem("Update failed.");
-});
+}).AllowAnonymous();
 
 // DELETE /maintenance/{maintenanceId} - Delete a maintenance record
 app.MapDelete("/maintenance/{maintenanceId}", async (
@@ -572,7 +573,7 @@ app.MapDelete("/maintenance/{maintenanceId}", async (
 
     var success = await maintenanceService.DeleteMaintenanceAsync(maintenanceId);
     return success ? Results.NoContent() : Results.Problem("Delete failed.");
-});
+}).AllowAnonymous();
 /*
 
 
@@ -603,7 +604,7 @@ app.MapPost("/api/webhooks/clerk", [SwaggerRequestExample(typeof(ClerkWebhookPay
     }
 
     return Results.BadRequest(new { message = $"Unhandled event type: {payload.Type}" });
-});
+}).AllowAnonymous();
 
 //The reads all users (for dev purposes)
 app.MapGet("/users", async ([FromServices] UserService userService) =>
@@ -623,7 +624,7 @@ app.MapGet("/users/{userId}", async ([FromServices] UserService userService, str
     }
 
     return Results.Ok(user);
-});
+}).AllowAnonymous();
 
 //This is used to update a users information 
 app.MapPatch("/users/{userId}", async ([FromServices] UserService userService, HttpContext ctx, string userId, [FromBody] ProfileUpdateRequest updateRequest) =>
@@ -641,7 +642,7 @@ app.MapPatch("/users/{userId}", async ([FromServices] UserService userService, H
     }
 
     return Results.Ok(new { message = "Profile updated successfully." });
-});
+}).AllowAnonymous();
 // This is the old DELETE endpoint, which is now replaced by the webhook-based one above.
 // I'm removing it to avoid confusion.
 // app.MapDelete("/users/{userId}", async ([FromServices] UserService userService, string userId) =>
