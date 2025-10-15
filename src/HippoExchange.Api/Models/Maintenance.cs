@@ -50,13 +50,13 @@ namespace HippoExchange.Api.Models
         public decimal CostPaid { get; set; }
 
         [Required(ErrorMessage = "Maintenance due date is required.")]
-        [CustomValidation(typeof(Maintenance), nameof(ValidateFutureDate))]
+        [CustomValidation(typeof(Maintenance), nameof(Maintenance.ValidateFutureDate))]
         public DateTime MaintenanceDueDate { get; set; }
 
         //Custom validator
         public static ValidationResult? ValidateFutureDate(DateTime date, ValidationContext context)
         {
-            if (date.Date < DateTime.Today)
+            if (date.ToUniversalTime().Date < DateTime.UtcNow.Date)
                 return new ValidationResult("Maintenance due date must be today or in the future.");
             return ValidationResult.Success;
         }
@@ -129,17 +129,8 @@ namespace HippoExchange.Api.Models
         ErrorMessage = "Cost must be between 0.01 and 1,000,000.")]
         public decimal CostPaid { get; set; }
 
-        [Required(ErrorMessage = "Maintenance due date is required.")]
-        [CustomValidation(typeof(Maintenance), nameof(ValidateFutureDate))]
+        [CustomValidation(typeof(Maintenance), nameof(Maintenance.ValidateFutureDate))]
         public DateTime MaintenanceDueDate { get; set; }
-
-        //Custom validator
-        public static ValidationResult? ValidateFutureDate(DateTime date, ValidationContext context)
-        {
-            if (date.Date < DateTime.Today)
-                return new ValidationResult("Maintenance due date must be today or in the future.");
-            return ValidationResult.Success;
-        }
 
         [Required(ErrorMessage = "Maintenance title is required.")]
         [StringLength(maximumLength: 100, MinimumLength = 2,
@@ -202,16 +193,8 @@ namespace HippoExchange.Api.Models
         ErrorMessage = "Cost must be between 0.01 and 1,000,000.")]
         public decimal CostPaid { get; set; }
 
-        [CustomValidation(typeof(Maintenance), nameof(ValidateFutureDate))]
+        [CustomValidation(typeof(Maintenance), nameof(Maintenance.ValidateFutureDate))]
         public DateTime MaintenanceDueDate { get; set; }
-
-        //Custom validator
-        public static ValidationResult? ValidateFutureDate(DateTime date, ValidationContext context)
-        {
-            if (date.Date < DateTime.Today)
-                return new ValidationResult("Maintenance due date must be today or in the future.");
-            return ValidationResult.Success;
-        }
 
         [StringLength(maximumLength: 100, MinimumLength = 0,
         ErrorMessage = "Maintenance title must be between 0 and 100 characters.")]
