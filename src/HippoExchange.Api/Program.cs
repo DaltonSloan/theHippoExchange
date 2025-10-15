@@ -173,9 +173,18 @@ app.MapPost("/assets", async ([FromServices] AssetService assetService, HttpCont
     var userId = GetUserId(ctx);
     if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
 
+    // First, validate the incoming request model.
+    var validationResults = new List<ValidationResult>();
+    var validationContext = new ValidationContext(assetRequest, null, null);
+    if (!Validator.TryValidateObject(assetRequest, validationContext, validationResults, true))
+    {
+        return Results.BadRequest(new { errors = validationResults.Select(v => v.ErrorMessage) });
+    }
+
+    // If validation passes, create the final Assets object for the database.
     var newAsset = new Assets
     {
-        OwnerUserId = userId,
+        OwnerUserId = userId, // Set the owner from the trusted header
         ItemName = assetRequest.ItemName,
         BrandName = assetRequest.BrandName,
         Category = assetRequest.Category,
@@ -189,19 +198,6 @@ app.MapPost("/assets", async ([FromServices] AssetService assetService, HttpCont
     };
 
     newAsset = InputSanitizer.SanitizeObject(newAsset);
-
-    //This is for checking inputs to make sure they follow conventions required in models 
-    var validationResults = new List<ValidationResult>();
-    var context = new ValidationContext(newAsset, null, null);
-
-    if (!Validator.TryValidateObject(newAsset, context, validationResults, true))
-    {
-        // Return 400 with all validation messages
-        return Results.BadRequest(new
-        {
-            errors = validationResults.Select(v => v.ErrorMessage)
-        });
-    }
 
     var createdAsset = await assetService.CreateAssetAsync(newAsset);
     return Results.Created($"/assets/{createdAsset.Id}", createdAsset);
@@ -261,28 +257,24 @@ app.MapPut("/assets/{assetId}", async ([FromServices] AssetService assetService,
     if (existingAsset is null) return Results.NotFound();
     if (existingAsset.OwnerUserId != userId) return Results.Forbid();
 
-    var updatedAsset = new Assets
-    {
-        Id = assetId,
-        OwnerUserId = userId,
-        ItemName = updatedAssetRequest.ItemName,
-        BrandName = updatedAssetRequest.BrandName,
-        Category = updatedAssetRequest.Category,
-        PurchaseDate = updatedAssetRequest.PurchaseDate,
-        PurchaseCost = updatedAssetRequest.PurchaseCost,
-        CurrentLocation = updatedAssetRequest.CurrentLocation,
-        Images = updatedAssetRequest.Images,
-        ConditionDescription = updatedAssetRequest.ConditionDescription,
-        Status = updatedAssetRequest.Status,
-        Favorite = updatedAssetRequest.Favorite
-    };
+    // Apply updates from the request to the existing asset
+    if (updatedAssetRequest.ItemName is not null) existingAsset.ItemName = updatedAssetRequest.ItemName;
+    if (updatedAssetRequest.BrandName is not null) existingAsset.BrandName = updatedAssetRequest.BrandName;
+    if (updatedAssetRequest.Category is not null) existingAsset.Category = updatedAssetRequest.Category;
+    if (updatedAssetRequest.PurchaseDate.HasValue) existingAsset.PurchaseDate = updatedAssetRequest.PurchaseDate.Value;
+    if (updatedAssetRequest.PurchaseCost.HasValue) existingAsset.PurchaseCost = updatedAssetRequest.PurchaseCost.Value;
+    if (updatedAssetRequest.CurrentLocation is not null) existingAsset.CurrentLocation = updatedAssetRequest.CurrentLocation;
+    if (updatedAssetRequest.Images is not null) existingAsset.Images = updatedAssetRequest.Images;
+    if (updatedAssetRequest.ConditionDescription is not null) existingAsset.ConditionDescription = updatedAssetRequest.ConditionDescription;
+    if (updatedAssetRequest.Status.HasValue) existingAsset.Status = updatedAssetRequest.Status.Value;
+    if (updatedAssetRequest.Favorite.HasValue) existingAsset.Favorite = updatedAssetRequest.Favorite.Value;
 
-    updatedAsset = InputSanitizer.SanitizeObject(updatedAsset);
+    var sanitizedAsset = InputSanitizer.SanitizeObject(existingAsset);
 
     var validationResults = new List<ValidationResult>();
-    var context = new ValidationContext(updatedAsset, null, null);
+    var context = new ValidationContext(sanitizedAsset, null, null);
 
-    if (!Validator.TryValidateObject(updatedAsset, context, validationResults, true))
+    if (!Validator.TryValidateObject(sanitizedAsset, context, validationResults, true))
     {
         // Return 400 with all validation messages
         return Results.BadRequest(new
@@ -291,7 +283,7 @@ app.MapPut("/assets/{assetId}", async ([FromServices] AssetService assetService,
         });
     }
 
-    var success = await assetService.ReplaceAssetAsync(assetId, updatedAsset);
+    var success = await assetService.ReplaceAssetAsync(assetId, sanitizedAsset);
     return success ? Results.NoContent() : Results.Problem("Update failed.");
 }).AllowAnonymous();
 
