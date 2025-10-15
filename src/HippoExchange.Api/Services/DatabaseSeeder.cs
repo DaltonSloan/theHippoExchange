@@ -951,7 +951,7 @@ namespace HippoExchange.Api.Services
                     MaintenanceDescription = task.Description,
                     MaintenanceStatus = status,
                     PreserveFromPrior = status == "completed",
-                    RequiredTools = task.RequiredTools,
+                    RequiredTools = task.RequiredTools.Split(',').Select(s => s.Trim()).ToList(),
                     ToolLocation = asset.CurrentLocation
                 };
 
