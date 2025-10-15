@@ -416,7 +416,7 @@ app.MapPost("/assets/{assetId}/maintenance", async (
         MaintenanceTitle = request.MaintenanceTitle,
         MaintenanceDescription = request.MaintenanceDescription,
         MaintenanceStatus = request.MaintenanceStatus,
-        RequiredTools = request.RequiredTools ?? new List<string>(),
+        RequiredTools = request.RequiredTools ?? string.Empty,
         ToolLocation = request.ToolLocation,
         PreserveFromPrior = request.PreserveFromPrior,
         RecurrenceInterval = request.RecurrenceInterval,
@@ -477,8 +477,8 @@ app.MapPut("/maintenance/{maintenanceId}", async (
     existingRecord.MaintenanceTitle = request.MaintenanceTitle;
     existingRecord.MaintenanceDescription = request.MaintenanceDescription;
     existingRecord.MaintenanceStatus = request.MaintenanceStatus;
-    existingRecord.IsCompleted = request.IsCompleted;
-    existingRecord.RequiredTools = request.RequiredTools ?? new List<string>();
+    existingRecord.IsCompleted = request.IsCompleted ?? false;
+    existingRecord.RequiredTools = request.RequiredTools ?? string.Empty;
     existingRecord.ToolLocation = request.ToolLocation;
     
     // FIX: Add the missing recurrence properties
