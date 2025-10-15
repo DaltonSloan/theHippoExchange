@@ -8,7 +8,8 @@ namespace HippoExchange.Api.Models
     {
         Available,
         In_Repair,
-        Unlisted
+        Unlisted,
+        Borrowed
     }
 
     public class Assets
