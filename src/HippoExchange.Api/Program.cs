@@ -65,6 +65,7 @@ if (!builder.Environment.IsDevelopment())
 builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
 {
     options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
 // Bind Mongo settings from env vars or appsettings
