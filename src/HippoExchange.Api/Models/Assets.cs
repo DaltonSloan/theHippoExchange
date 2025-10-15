@@ -31,7 +31,7 @@ namespace HippoExchange.Api.Models
 
         [StringLength(maximumLength: 100, MinimumLength = 3,
         ErrorMessage = "Max length is 100 character and a minimum of 3")]
-        [RegularExpression(@"^[a-zA-Z-]+$",
+        [RegularExpression(@"^[a-zA-Z\s-]+$",
         ErrorMessage = "Category name can only contain letters, and (-). ")]
         public string Category { get; set; } = string.Empty;
 
