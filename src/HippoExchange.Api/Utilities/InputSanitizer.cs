@@ -1,3 +1,6 @@
+using System.Collections;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Web;
 
@@ -5,51 +8,113 @@ namespace HippoExchange.Api.Utilities
 {
     public static class InputSanitizer
     {
-        // Removes whitespace and dangerous tags from input
+        private static readonly Regex HtmlTagRegex = new("<.*?>", RegexOptions.Compiled);
+
+        // Removes excessive whitespace and strips simple markup without mutating safe characters
         public static string Clean(string? input)
         {
             if (string.IsNullOrWhiteSpace(input))
+            {
                 return string.Empty;
+            }
 
-            // 1. Trim leading/trailing whitespace
-            string cleaned = input.Trim();
-
-            // 2. Remove HTML or JavaScript tags
-            cleaned = Regex.Replace(cleaned, "<.*?>", string.Empty);
-
-            // 3. Decode any encoded HTML entities (&lt;, &gt;)
+            var cleaned = input.Trim();
+            cleaned = HtmlTagRegex.Replace(cleaned, string.Empty);
             cleaned = HttpUtility.HtmlDecode(cleaned);
-
-            // 4. Optionally re-encode dangerous characters
-            cleaned = HttpUtility.HtmlEncode(cleaned);
+            cleaned = cleaned.Replace("\0", string.Empty);
 
             return cleaned;
         }
 
-        // Apply to every string property in an object
+        // Apply sanitization to all string properties within an object graph
         public static T SanitizeObject<T>(T obj)
         {
-            //if an object is null just return it
-            if (obj == null) return obj!;
-
-            //Checks if the object is a string and only continues with the string objects 
-            var stringProperties = typeof(T)
-                .GetProperties()
-                .Where(p => p.PropertyType == typeof(string) && p.CanWrite);
-
-            //recursivly goes through all the string attributes in the object and passes them through the clean func
-            foreach (var prop in stringProperties)
+            if (obj == null)
             {
-                var value = (string?)prop.GetValue(obj);
-                if (!string.IsNullOrWhiteSpace(value))
+                return obj!;
+            }
+
+            var visited = new HashSet<object>();
+            SanitizeRecursive(obj!, visited);
+            return obj;
+        }
+
+        private static void SanitizeRecursive(object target, HashSet<object> visited)
+        {
+            if (target is null || target is string)
+            {
+                return;
+            }
+
+            if (!visited.Add(target))
+            {
+                return;
+            }
+
+            if (target is IEnumerable enumerable && target is not string)
+            {
+                if (target is IList list)
                 {
-                    prop.SetValue(obj, Clean(value));
+                    for (var i = 0; i < list.Count; i++)
+                    {
+                        var value = list[i];
+                        if (value is string str)
+                        {
+                            list[i] = Clean(str);
+                        }
+                        else if (value is not null)
+                        {
+                            SanitizeRecursive(value, visited);
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (var item in enumerable)
+                    {
+                        if (item is not null)
+                        {
+                            SanitizeRecursive(item, visited);
+                        }
+                    }
                 }
             }
 
-            return obj;
+            var properties = target.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            foreach (var property in properties)
+            {
+                if (!property.CanRead)
+                {
+                    continue;
+                }
+
+                var propertyType = property.PropertyType;
+
+                if (propertyType == typeof(string) && property.CanWrite)
+                {
+                    var value = (string?)property.GetValue(target);
+                    if (value is not null)
+                    {
+                        property.SetValue(target, Clean(value));
+                    }
+                }
+                else if (!propertyType.IsValueType && propertyType != typeof(string))
+                {
+                    var nested = property.GetValue(target);
+                    if (nested is null)
+                    {
+                        continue;
+                    }
+
+                    if (nested is string nestedString && property.CanWrite)
+                    {
+                        property.SetValue(target, Clean(nestedString));
+                        continue;
+                    }
+
+                    SanitizeRecursive(nested, visited);
+                }
+            }
         }
     }
 }
-// This is the function call to this method just replace the "newAsset" with the variable name
-//newAsset = InputSanitizer.SanitizeObject(newAsset);

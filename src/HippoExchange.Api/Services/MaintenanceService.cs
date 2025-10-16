@@ -44,16 +44,21 @@ namespace HippoExchange.Api.Services
         {
             var filter = Builders<Maintenance>.Filter.Eq(m => m.Id, id);
             
-            // The previous dynamic update was incomplete and led to data sync issues.
-            // This new implementation ensures all fields from the request are updated,
-            // creating a single source of truth from the client's request.
+            // Ensure every client-supplied field is persisted to MongoDB.
             var update = Builders<Maintenance>.Update
+                .Set(m => m.BrandName, updatedRecord.BrandName)
+                .Set(m => m.ProductName, updatedRecord.ProductName)
+                .Set(m => m.PurchaseLocation, updatedRecord.PurchaseLocation)
+                .Set(m => m.AssetCategory, updatedRecord.AssetCategory)
+                .Set(m => m.CostPaid, updatedRecord.CostPaid)
+                .Set(m => m.MaintenanceDueDate, updatedRecord.MaintenanceDueDate)
                 .Set(m => m.MaintenanceTitle, updatedRecord.MaintenanceTitle)
                 .Set(m => m.MaintenanceDescription, updatedRecord.MaintenanceDescription)
-                .Set(m => m.MaintenanceDueDate, updatedRecord.MaintenanceDueDate)
+                .Set(m => m.MaintenanceStatus, updatedRecord.MaintenanceStatus)
                 .Set(m => m.IsCompleted, updatedRecord.IsCompleted)
                 .Set(m => m.PreserveFromPrior, updatedRecord.PreserveFromPrior)
                 .Set(m => m.RequiredTools, updatedRecord.RequiredTools)
+                .Set(m => m.ToolLocation, updatedRecord.ToolLocation)
                 .Set(m => m.RecurrenceInterval, updatedRecord.RecurrenceInterval)
                 .Set(m => m.RecurrenceUnit, updatedRecord.RecurrenceUnit);
 
