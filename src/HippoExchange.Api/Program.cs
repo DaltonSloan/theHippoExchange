@@ -8,6 +8,7 @@ using HippoExchange.Api.Models;
 using HippoExchange.Models.Clerk;
 using HippoExchange.Api.Utilities;
 using System.Text.Json;
+using System.Net.Http.Json;
 using Google.Cloud.SecretManager.V1;
 using Figgle;
 using Figgle.Fonts;
@@ -638,6 +639,30 @@ app.MapPatch("/users/{userId}", async ([FromServices] UserService userService, H
 
     return Results.Ok(new { message = "Profile updated successfully." });
 }).AllowAnonymous();
+
+app.MapPatch("/update-clerk-user/{userId}", async (string userId, HttpContext http) =>
+{
+    app.UseHttpsRedirection();
+    var clerkApiKey = Environment.GetEnvironmentVariable("CLERK_API_KEY");
+    var client = new HttpClient();
+    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {clerkApiKey}");
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+
+    // Deserialize incoming JSON (expected to match the fields in your Python file)
+    var updateData = await JsonSerializer.DeserializeAsync<Dictionary<string, object>>(http.Request.Body);
+
+    // Send PATCH to Clerk
+    var response = await client.PatchAsJsonAsync($"https://api.clerk.com/v1/users/{userId}", updateData);
+
+    var content = await response.Content.ReadAsStringAsync();
+
+    if (!response.IsSuccessStatusCode)
+    {
+        return Results.BadRequest(new { error = content });
+    }
+
+    return Results.Ok(JsonDocument.Parse(content));
+});
 // This is the old DELETE endpoint, which is now replaced by the webhook-based one above.
 // I'm removing it to avoid confusion.
 // app.MapDelete("/users/{userId}", async ([FromServices] UserService userService, string userId) =>
