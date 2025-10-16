@@ -8,11 +8,22 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       Mongo__ConnectionString: "mongodb://${MONGO_PROD_USERNAME}:${MONGO_PROD_PASSWORD}@mongo:27017/?authSource=admin"
-      Mongo__Database: "${MONGO_DB_NAME}"
+      Mongo__DatabaseName: "${MONGO_DB_NAME}"
     ports:
       - "8080:8080"
     depends_on:
       - mongo
+
+  mongo:
+    profiles: ["prod"]
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "${MONGO_PROD_USERNAME}"
+      MONGO_INITDB_ROOT_PASSWORD: "${MONGO_PROD_PASSWORD}"
+      MONGO_INITDB_DATABASE: "${MONGO_DB_NAME}"
+    volumes:
+      - mongo-data:/data/db
 
 volumes:
   mongo-data:

@@ -6,43 +6,76 @@ This is a simple API for managing user profiles.
 
 ### Prerequisites
 
-  * **Docker Desktop**: Make sure you have Docker Desktop installed and running.
-  * **VS Code**: You'll need Visual Studio Code with the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers).
-  * **Git**: You'll need Git installed to clone the repository.
+- **Docker Desktop** running locally
+- **Visual Studio Code** with the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+- **Git** for cloning the repository
 
-### Local Development
+### Step-by-Step Development Setup
 
-This project is set up to run in a containerized environment for easy development.
+1. **Clone the repository**
 
-1.  **Clone the repository**:
+   ```bash
+   git clone https://github.com/DaltonSloan/theHippoExchange.git
+   cd theHippoExchange
+   ```
 
-    ```bash
-    git clone https://github.com/DaltonSloan/theHippoExchange.git
-    cd theHippoExchange
-    ```
+2. **Open the project in VS Code**
 
-2.  **Open in VS Code**:
+   ```bash
+   code .
+   ```
 
-    ```bash
-    code .
-    ```
+3. **Reopen in the Dev Container**  
+   When prompted, choose **Reopen in Container** so VS Code builds the environment described in `.devcontainer/devcontainer.json` and `docker-compose.dev.yml`. This installs the .NET SDK, MongoDB tools, and other dependencies inside the container.
 
-3.  **Reopen in Container**: When prompted, click on **"Reopen in Container"**. This will build the Docker container defined in the `.devcontainer/devcontainer.json` and `docker-compose.dev.yml` files.
+4. **Create the Mongo `.env` file**  
+   In the repo root, add a `.env` file with credentials provided in the backend Discord channel:
 
-4. **Create a .env File**: Once the container is up and running, create a new file in the base directory called ".env" without quotes. Within the file, type the following and fill in with the parameters in the Back End Discord channel #database:
-    ```bash
-    MONGO_USERNAME=
-    MONGO_PASSWORD=
-    MONGO_DB_NAME=
-    MONGO_INITDB_DATABASE=
-    ```
+   ```env
+   MONGO_USERNAME=
+   MONGO_PASSWORD=
+   MONGO_DB_NAME=
+   MONGO_INITDB_DATABASE=
+   ```
 
-5.  **Run the application**: Once the container is up and running, open the integrated terminal in VS Code and run the following commands:
+5. **Configure application secrets**  
+   The API requires a Cloudinary URL, an API key, and a webhook secret. Manage them with .NET user-secrets (recommended) or a local secrets file.
 
-    ```bash
-    cd /workspace/src/HippoExchange.Api
-    dotnet run
-    ```
+   _Using user-secrets (inside the dev container):_
+
+   ```bash
+   # Run once per machine
+   dotnet user-secrets init --project src/HippoExchange.Api
+
+   # Set strong random values
+   dotnet user-secrets set --project src/HippoExchange.Api "Auth:ApiKey" "<your-api-key>"
+   dotnet user-secrets set --project src/HippoExchange.Api "Auth:WebhookSecret" "<your-webhook-secret>"
+   dotnet user-secrets set --project src/HippoExchange.Api "CLOUDINARY_URL" "cloudinary://<api_key>:<api_secret>@<cloud_name>"
+   ```
+
+   _Using a local secrets file (git-ignored):_
+
+   1. Copy `src/HippoExchange.Api/appsettings.Secrets.example.json` to `src/HippoExchange.Api/appsettings.Secrets.json`.
+   2. Replace the placeholder values with real credentials.
+
+6. **Run the API**
+
+   ```bash
+   cd /workspace/src/HippoExchange.Api
+   dotnet run
+   ```
+
+   The API listens on <http://localhost:8080>. Swagger UI is available at `/swagger`.
+
+7. **Call secured endpoints**  
+   Every API request must supply both headers:
+
+   ```text
+   X-Api-Key: <Auth:ApiKey value>
+   X-User-Id: <Clerk user id>
+   ```
+
+   Use the demo Clerk IDs in the section below or real IDs from Clerk. Without these headers the API returns `401 Unauthorized`.
 
 ## 🌱 Database Seeding
 
@@ -67,13 +100,13 @@ You can also seed the database via API endpoints:
 **Example:**
 ```bash
 # Seed via API
-curl -X POST http://localhost:8080/api/admin/seed
+curl -H "X-Api-Key: <your-api-key>" -H "X-User-Id: <clerk-id>" -X POST http://localhost:8080/api/admin/seed
 
 # Check status
-curl http://localhost:8080/api/admin/seed/status
+curl -H "X-Api-Key: <your-api-key>" -H "X-User-Id: <clerk-id>" http://localhost:8080/api/admin/seed/status
 
 # Purge demo data
-curl -X DELETE http://localhost:8080/api/admin/seed
+curl -H "X-Api-Key: <your-api-key>" -H "X-User-Id: <clerk-id>" -X DELETE http://localhost:8080/api/admin/seed
 ```
 
 These endpoints are also available in Swagger UI under the "Admin" tag.
@@ -107,13 +140,13 @@ To test API endpoints with demo users, use their Clerk IDs in the `X-User-Id` he
 
 ```bash
 # Example: Get assets for John Smith
-curl -H "X-User-Id: user_33UeIDzYloCoZABaaCR1WPmV7MT" http://localhost:8080/api/assets
+curl -H "X-Api-Key: <your-api-key>" -H "X-User-Id: user_33UeIDzYloCoZABaaCR1WPmV7MT" http://localhost:8080/api/assets
 
 # Example: Get assets for Jane Doe
-curl -H "X-User-Id: user_33UeKv6eNbmLb2HClHd1PN51AZ5" http://localhost:8080/api/assets
+curl -H "X-Api-Key: <your-api-key>" -H "X-User-Id: user_33UeKv6eNbmLb2HClHd1PN51AZ5" http://localhost:8080/api/assets
 
 # Example: Get assets for Bob Builder
-curl -H "X-User-Id: user_33UeOCZ7LGxjHJ8dkwnAIozslO0" http://localhost:8080/api/assets
+curl -H "X-Api-Key: <your-api-key>" -H "X-User-Id: user_33UeOCZ7LGxjHJ8dkwnAIozslO0" http://localhost:8080/api/assets
 ```
 
 **Demo User Clerk IDs:**
@@ -130,9 +163,9 @@ curl -H "X-User-Id: user_33UeOCZ7LGxjHJ8dkwnAIozslO0" http://localhost:8080/api/
 
 Once the application is running, you can access the following endpoints:
 
-  * **API Health Check**: `http://localhost:8080/join`
-  * **Swagger UI**: `http://localhost:8080/swagger`
-  * **Mongo Express**: `http://localhost:8081` (login with `admin` / `admin`)
+- **API Health Check**: `http://localhost:8080/join`
+- **Swagger UI**: `http://localhost:8080/swagger`
+- **Mongo Express**: `http://localhost:8081` (login with `admin` / `admin`)
 
 ## ☁️ Deployment
 

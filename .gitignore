@@ -19,3 +19,4 @@ docker-compose.override.yml
 .DS_Store
 
 *.py
+appsettings.Secrets.json
