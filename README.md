@@ -1,172 +1,255 @@
 # The HippoExchange
 
-This is a simple API for managing user profiles.
+Welcome to the HippoExchange backend! This repository contains the ASP.NET Core API that powers HippoExchange, a tool for tracking personal equipment, sharing assets, and recording maintenance.
 
-## 🚀 Getting Started
+This guide is written for new developers with little or no experience setting up .NET projects. Follow each section in order; every command shows exactly where to run it and what to expect.
 
-### Prerequisites
+## Table of Contents
+1. Getting to Know the Project
+2. Tooling Checklist
+3. Project Setup Walkthrough
+4. Verify the API
+5. Working with Demo Data
+6. Useful Commands
+7. Troubleshooting
+8. Deployment
 
-- **Docker Desktop** running locally
-- **Visual Studio Code** with the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
-- **Git** for cloning the repository
+## 1. Getting to Know the Project
 
-### Step-by-Step Development Setup
+- The API is written in C# with ASP.NET Core 8.
+- MongoDB stores application data; assets, maintenance records, and users live in separate collections.
+- Authentication currently relies on shared secrets supplied in request headers. Clerk provides user identities.
+- Cloudinary hosts asset images.
 
-1. **Clone the repository**
+You will run the API inside a VS Code Dev Container. The container ships with the .NET SDK, MongoDB tools, and other dependencies already installed.
 
-   ```bash
-   git clone https://github.com/DaltonSloan/theHippoExchange.git
-   cd theHippoExchange
-   ```
+## 2. Tooling Checklist
 
-2. **Open the project in VS Code**
+Install these before you start:
 
-   ```bash
-   code .
-   ```
+- Docker Desktop – required for Dev Containers and local MongoDB. Launch Docker Desktop after installing so it finishes initial setup.
+- Visual Studio Code – the editor we use for Dev Containers.
+- VS Code "Dev Containers" extension – enables the remote container environment.
+- Git – used for cloning this repository.
+- Optional but helpful: `curl` (ships with macOS/Linux; on Windows you can use PowerShell's `Invoke-WebRequest`), a password manager for storing secrets, and access to the HippoExchange backend Discord channel for shared credentials.
 
-3. **Reopen in the Dev Container**  
-   When prompted, choose **Reopen in Container** so VS Code builds the environment described in `.devcontainer/devcontainer.json` and `docker-compose.dev.yml`. This installs the .NET SDK, MongoDB tools, and other dependencies inside the container.
+Create the accounts you will need:
 
-4. **Create the Mongo `.env` file**  
-   In the repo root, add a `.env` file with credentials provided in the backend Discord channel:
+- Cloudinary account – provides the `CLOUDINARY_URL` connection string.
+- Clerk project access – ask a teammate for the webhook secret and demo user IDs.
+- Mongo credentials – the backend team shares the values you will place in `.env`.
 
-   ```env
-   MONGO_USERNAME=
-   MONGO_PASSWORD=
-   MONGO_DB_NAME=
-   MONGO_INITDB_DATABASE=
-   ```
+## 3. Project Setup Walkthrough
 
-5. **Configure application secrets**  
-   The API requires a Cloudinary URL, an API key, and a webhook secret. Manage them with .NET user-secrets (recommended) or a local secrets file.
+All commands below run inside your terminal. Lines that start with `#` are comments to explain what the command does.
 
-   _Using user-secrets (inside the dev container):_
+### Step 1 – Clone the repository
 
-   ```bash
-   # Run once per machine
-   dotnet user-secrets init --project src/HippoExchange.Api
+```bash
+# Clone with HTTPS (recommended for beginners)
+git clone https://github.com/DaltonSloan/theHippoExchange.git
+cd theHippoExchange
+```
 
-   # Set strong random values
-   dotnet user-secrets set --project src/HippoExchange.Api "Auth:ApiKey" "<your-api-key>"
-   dotnet user-secrets set --project src/HippoExchange.Api "Auth:WebhookSecret" "<your-webhook-secret>"
-   dotnet user-secrets set --project src/HippoExchange.Api "CLOUDINARY_URL" "cloudinary://<api_key>:<api_secret>@<cloud_name>"
-   ```
+If you work from your own fork, replace the URL with your fork’s address.
 
-   _Using a local secrets file (git-ignored):_
+### Step 2 – Open the repo in VS Code
 
-   1. Copy `src/HippoExchange.Api/appsettings.Secrets.example.json` to `src/HippoExchange.Api/appsettings.Secrets.json`.
-   2. Replace the placeholder values with real credentials.
+```bash
+code .
+```
 
-6. **Run the API**
+VS Code may prompt you to install the Dev Containers extension if it is missing.
 
-   ```bash
-   cd /workspace/src/HippoExchange.Api
-   dotnet run
-   ```
+### Step 3 – Reopen in the Dev Container
 
-   The API listens on <http://localhost:8080>. Swagger UI is available at `/swagger`.
+1. When VS Code opens, wait for the prompt **“Reopen in Container”** and click it.  
+   If you miss the prompt, run `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS) → “Dev Containers: Reopen in Container”.
+2. The first build can take a few minutes. Watch the progress tray in the lower-right corner.
+3. When the container is ready VS Code opens a new terminal that already runs inside the container (`/workspace` prompt).
 
-7. **Call secured endpoints**  
-   Every API request must supply both headers:
+### Step 4 – Create the Mongo `.env` file
 
-   ```text
-   X-Api-Key: <Auth:ApiKey value>
-   X-User-Id: <Clerk user id>
-   ```
+The backend uses environment variables located in `.env`. Create the file and paste the credentials from the backend Discord channel.
 
-   Use the demo Clerk IDs in the section below or real IDs from Clerk. Without these headers the API returns `401 Unauthorized`.
+```bash
+# Still inside /workspace
+cat <<'ENV' > .env
+MONGO_USERNAME=
+MONGO_PASSWORD=
+MONGO_DB_NAME=
+MONGO_INITDB_DATABASE=
+ENV
+```
 
-## 🌱 Database Seeding
+Replace each blank value with the real credential, then save.
 
-The application includes a database seeding feature to populate the database with realistic demo data for development and testing.
+### Step 5 – Configure application secrets
 
-### Command Line Seeding
+The API expects several secret values. The recommended way to store them locally is .NET user secrets, which keeps secrets outside the repo.
 
-**Seed the database with demo data:**
+```bash
+# Run once per machine (inside the container)
+dotnet user-secrets init --project src/HippoExchange.Api
+
+# Set each secret value
+dotnet user-secrets set --project src/HippoExchange.Api "Auth:ApiKey" "<your-api-key>"
+dotnet user-secrets set --project src/HippoExchange.Api "Auth:WebhookSecret" "<your-webhook-secret>"
+dotnet user-secrets set --project src/HippoExchange.Api "CLOUDINARY_URL" "cloudinary://<api_key>:<api_secret>@<cloud_name>"
+```
+
+Need help generating secure values?
+
+- macOS/Linux:
+
+  ```bash
+  openssl rand -hex 32
+  ```
+
+- Windows PowerShell:
+
+  ```powershell
+  [System.Convert]::ToHexString((1..32 | ForEach-Object { Get-Random -Maximum 256 }))
+  ```
+
+Keep the generated values somewhere safe; you will use the API key when calling the service.
+
+To review what you stored later:
+
+```bash
+dotnet user-secrets list --project src/HippoExchange.Api
+```
+
+#### Alternative: local secrets file
+
+If you prefer a file you can edit, copy the example file and fill in the blanks. Git ignores the real secrets file.
+
+```bash
+cp src/HippoExchange.Api/appsettings.Secrets.example.json src/HippoExchange.Api/appsettings.Secrets.json
+# Open the new file in VS Code and replace placeholder values.
+```
+
+### Step 6 – Start dependent containers (MongoDB, Mongo Express)
+
+The Dev Container configuration usually starts these automatically. If you need to start them manually:
+
+```bash
+docker compose up -d
+```
+
+Check running containers with `docker ps`. You should see entries for Mongo and Mongo Express.
+
+### Step 7 – Run the API
+
+```bash
+cd /workspace/src/HippoExchange.Api
+dotnet run
+```
+
+The first run restores NuGet packages. Once the API is up you will see output similar to:
+
+```
+Now listening on: http://0.0.0.0:8080
+Application started. Press Ctrl+C to shut down.
+```
+
+Leave this terminal window open while you test the API. To stop the app, press `Ctrl+C`.
+
+## 4. Verify the API
+
+Use a second terminal inside the Dev Container (`Terminal → New Terminal`).
+
+- Health check:
+
+  ```bash
+  curl http://localhost:8080/join
+  ```
+
+  You should receive a welcome banner.
+
+- Swagger UI: open [http://localhost:8080/swagger](http://localhost:8080/swagger) in your browser.
+
+- Mongo Express: open [http://localhost:8081](http://localhost:8081) and log in with `admin` / `admin` to inspect the MongoDB collections.
+
+### Calling secured endpoints
+
+All API endpoints (except `/join`) require two headers:
+
+```
+X-Api-Key: <Auth:ApiKey value>
+X-User-Id: <Clerk user id>
+```
+
+Example request that lists assets for a demo user:
+
+```bash
+curl \
+  -H "X-Api-Key: <your-api-key>" \
+  -H "X-User-Id: user_33UeIDzYloCoZABaaCR1WPmV7MT" \
+  http://localhost:8080/assets
+```
+
+Replace `<your-api-key>` with the value you stored earlier. Demo Clerk IDs are listed in the “Working with Demo Data” section.
+
+## 5. Working with Demo Data
+
+Populating MongoDB with sample content makes testing easier.
+
+### Seed via command line
+
 ```bash
 cd /workspace/src/HippoExchange.Api
 dotnet run seed
 ```
 
-### API Endpoints for Seeding
+The command creates demo users, assets, and maintenance records. You can run it multiple times; it is idempotent.
 
-You can also seed the database via API endpoints:
+### Seed via API
 
-- **`POST /api/admin/seed`** - Seed database with demo data (idempotent)
-- **`DELETE /api/admin/seed`** - Remove only demo data
-- **`GET /api/admin/seed/status`** - Check if demo data exists
+| Endpoint | Description |
+|----------|-------------|
+| `POST /api/admin/seed` | Create demo data |
+| `DELETE /api/admin/seed` | Remove demo data |
+| `GET /api/admin/seed/status` | Check if demo data exists |
 
-**Example:**
-```bash
-# Seed via API
-curl -H "X-Api-Key: <your-api-key>" -H "X-User-Id: <clerk-id>" -X POST http://localhost:8080/api/admin/seed
-
-# Check status
-curl -H "X-Api-Key: <your-api-key>" -H "X-User-Id: <clerk-id>" http://localhost:8080/api/admin/seed/status
-
-# Purge demo data
-curl -H "X-Api-Key: <your-api-key>" -H "X-User-Id: <clerk-id>" -X DELETE http://localhost:8080/api/admin/seed
-```
-
-These endpoints are also available in Swagger UI under the "Admin" tag.
-
-### Demo Data Overview
-
-The seeding script creates:
-
-- **3 Demo Users** with different personas:
-  - **John Smith** (`clerk_john_smith`) - Homeowner with lawn/garden equipment
-  - **Jane Doe** (`clerk_jane_doe`) - Hobbyist with workshop tools
-  - **Bob Builder** (`clerk_bob_builder`) - Contractor with professional equipment
-
-- **5-10 Assets per user** with varied data:
-  - Mix of brands (DeWalt, Craftsman, Honda, Makita, Milwaukee, etc.)
-  - Different statuses (available, maintenance, loaned)
-  - Various cost ranges ($10 to $5000)
-  - Mix of favorited and non-favorited assets
-  - Realistic purchase dates and locations
-
-- **8-15 Maintenance records per asset** with variety:
-  - Some overdue (due date in past)
-  - Some due soon (within 7 days)
-  - Some due later (within 30 days)
-  - Some completed
-  - Realistic maintenance tasks and required tools
-
-### Using Demo Users
-
-To test API endpoints with demo users, use their Clerk IDs in the `X-User-Id` header:
+Example:
 
 ```bash
-# Example: Get assets for John Smith
-curl -H "X-Api-Key: <your-api-key>" -H "X-User-Id: user_33UeIDzYloCoZABaaCR1WPmV7MT" http://localhost:8080/api/assets
-
-# Example: Get assets for Jane Doe
-curl -H "X-Api-Key: <your-api-key>" -H "X-User-Id: user_33UeKv6eNbmLb2HClHd1PN51AZ5" http://localhost:8080/api/assets
-
-# Example: Get assets for Bob Builder
-curl -H "X-Api-Key: <your-api-key>" -H "X-User-Id: user_33UeOCZ7LGxjHJ8dkwnAIozslO0" http://localhost:8080/api/assets
+curl \
+  -H "X-Api-Key: <your-api-key>" \
+  -H "X-User-Id: <clerk-id>" \
+  -X POST http://localhost:8080/api/admin/seed
 ```
 
-**Demo User Clerk IDs:**
+### Demo Clerk IDs
+
 - John Smith (Homeowner): `user_33UeIDzYloCoZABaaCR1WPmV7MT`
 - Jane Doe (Hobbyist): `user_33UeKv6eNbmLb2HClHd1PN51AZ5`
 - Bob Builder (Contractor): `user_33UeOCZ7LGxjHJ8dkwnAIozslO0`
 
-### Important Notes
+Use these IDs when you need to impersonate a user while testing.
 
-- **Seeding is idempotent**: Running the seed command multiple times will not create duplicates. Existing demo users are removed and recreated.
-- **⚠️ Use with caution**: Seeding commands work in any environment, so be careful when running in production.
+## 6. Useful Commands
 
-## 🌐 Endpoints
+- `dotnet watch run` – optional hot reload experience.
+- `dotnet user-secrets list --project src/HippoExchange.Api` – view stored secrets.
+- `docker compose logs mongo` – inspect MongoDB output.
+- `docker compose down` – stop MongoDB and Mongo Express containers.
 
-Once the application is running, you can access the following endpoints:
+## 7. Troubleshooting
 
-- **API Health Check**: `http://localhost:8080/join`
-- **Swagger UI**: `http://localhost:8080/swagger`
-- **Mongo Express**: `http://localhost:8081` (login with `admin` / `admin`)
+- **Dev Container build fails** – ensure Docker Desktop is running. On Windows, enable virtualization in BIOS if required.
+- **Cannot connect to MongoDB** – verify `.env` values match the shared credentials and that the Mongo container is running (`docker ps`).
+- **401 Unauthorized responses** – double-check that both `X-Api-Key` and `X-User-Id` headers are present and spelled correctly.
+- **Webhook endpoint returns 500** – the webhook secret must be set via user secrets or the secrets file.
+- **Cloudinary upload errors** – confirm the `CLOUDINARY_URL` matches the Cloudinary dashboard and that the account allows unsigned uploads.
 
-## ☁️ Deployment
+Ask for help in the backend Discord channel if you get stuck; mention the step number you were following.
 
-This project is configured for continuous deployment to **Google Cloud Run**. Any push to the `main` branch will trigger a new build and deployment via **Google Cloud Build**.
+## 8. Deployment
+
+The `main` branch deploys automatically to Google Cloud Run via Google Cloud Build. The `fixes` branch targets development work only. Do not push secrets to Git – rely on user secrets or the Git-ignored secrets file.
+
+---
+
+You are now ready to build features, write tests, and contribute! Keep this guide handy the first few times you set up the project, and feel free to update it with anything that would have helped you.
