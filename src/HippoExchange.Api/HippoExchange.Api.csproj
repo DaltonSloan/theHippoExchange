@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Clerk.BackendAPI" Version="0.13.0" />
     <PackageReference Include="CloudinaryDotNet" Version="1.27.7" />
     <PackageReference Include="Cowsay" Version="1.1.19" />
     <PackageReference Include="Figgle" Version="0.6.5" />

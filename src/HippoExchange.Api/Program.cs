@@ -17,6 +17,10 @@ using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using Clerk.BackendAPI;
+using Clerk.BackendAPI.Models.Operations;
+using Clerk.BackendAPI.Models.Components;
+using Microsoft.AspNetCore.Authentication.BearerToken;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -640,19 +644,16 @@ app.MapPatch("/users/{userId}", async ([FromServices] UserService userService, H
     return Results.Ok(new { message = "Profile updated successfully." });
 }).AllowAnonymous();
 
-app.MapPatch("/update-clerk-user/{userId}", async (string userId, HttpContext http) =>
+// A patch endpoint to allow for the app devs to talk to clerk and update user info
+app.MapPatch("/update-clerk-user/{userId}", async (string userId, HttpContext ctx,
+[FromBody] ClerkUserUpdateRequest updateRequest) =>
 {
-    app.UseHttpsRedirection();
     var clerkApiKey = Environment.GetEnvironmentVariable("CLERK_API_KEY");
+    var sdk = new ClerkBackendApi(bearerAuth: clerkApiKey);
     var client = new HttpClient();
-    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {clerkApiKey}");
-    client.DefaultRequestHeaders.Add("Accept", "application/json");
-
-    // Deserialize incoming JSON (expected to match the fields in your Python file)
-    var updateData = await JsonSerializer.DeserializeAsync<Dictionary<string, object>>(http.Request.Body);
 
     // Send PATCH to Clerk
-    var response = await client.PatchAsJsonAsync($"https://api.clerk.com/v1/users/{userId}", updateData);
+    var response = await client.PatchAsJsonAsync($"https://api.clerk.com/v1/users/{userId}", updateRequest);
 
     var content = await response.Content.ReadAsStringAsync();
 
