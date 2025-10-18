@@ -393,11 +393,11 @@ namespace HippoExchange.Api.Services
                     }
                 },
                 
-                // User 2 (DEV): Jane Doe - Hobbyist
-                new User
-                {
-                    ClerkId = "user_33fKlsH9bgC5XJlaOLXcPrrqXQI",
-                    Email = "jane.doe@demo.hippoexchange.com",
+            // User 2 (DEV): Jane Doe - Hobbyist
+            new User
+            {
+                ClerkId = "user_33fKlsH9bgC5XJlaOLXcPrrqXQI",
+                Email = "jane.doe@demo.hippoexchange.com",
                     Username = "jane_doe",
                     FirstName = "Jane",
                     LastName = "Doe",
@@ -942,8 +942,10 @@ namespace HippoExchange.Api.Services
                 var maintenance = new Maintenance
                 {
                     AssetId = asset.Id!,
+                    IsSeeded = true,
                     BrandName = asset.BrandName,
                     ProductName = asset.ItemName,
+                    AssetCategory = asset.Category,
                     PurchaseLocation = GetRandomPurchaseLocation(random),
                     CostPaid = asset.PurchaseCost,
                     MaintenanceDueDate = dueDate,

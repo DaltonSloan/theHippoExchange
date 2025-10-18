@@ -20,6 +20,9 @@ namespace HippoExchange.Api.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public string AssetId { get; set; } = string.Empty;
 
+        [BsonIgnoreIfDefault]
+        public bool IsSeeded { get; set; } = false;
+
         [Required(ErrorMessage = "Brand name is required.")]
         [StringLength(maximumLength: 100, MinimumLength = 2,
         ErrorMessage = "Max length is 100 character and the minimum is 2.")]
@@ -56,6 +59,12 @@ namespace HippoExchange.Api.Models
         //Custom validator
         public static ValidationResult? ValidateFutureDate(object? value, ValidationContext context)
         {
+            var instance = context.ObjectInstance as Maintenance;
+            if (instance != null && instance.IsSeeded)
+            {
+                return ValidationResult.Success;
+            }
+
             if (value is null)
             {
                 // If the value is null, validation passes. 
