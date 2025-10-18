@@ -645,12 +645,15 @@ app.MapPatch("/users/{userId}", async ([FromServices] UserService userService, H
 }).AllowAnonymous();
 
 // A patch endpoint to allow for the app devs to talk to clerk and update user info
+// IMPORTANT: Requires all fields to be included, whether or not they were changed
 app.MapPatch("/update-clerk-user/{userId}", async (string userId, HttpContext ctx,
-[FromBody] ClerkUserUpdateRequest updateRequest) =>
+    [FromBody] ClerkUserUpdateRequest updateRequest) =>
 {
     var clerkApiKey = Environment.GetEnvironmentVariable("CLERK_API_KEY");
-    var sdk = new ClerkBackendApi(bearerAuth: clerkApiKey);
     var client = new HttpClient();
+
+    client.DefaultRequestHeaders.Authorization = 
+        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", clerkApiKey);
 
     // Send PATCH to Clerk
     var response = await client.PatchAsJsonAsync($"https://api.clerk.com/v1/users/{userId}", updateRequest);
@@ -664,6 +667,7 @@ app.MapPatch("/update-clerk-user/{userId}", async (string userId, HttpContext ct
 
     return Results.Ok(JsonDocument.Parse(content));
 });
+
 // This is the old DELETE endpoint, which is now replaced by the webhook-based one above.
 // I'm removing it to avoid confusion.
 // app.MapDelete("/users/{userId}", async ([FromServices] UserService userService, string userId) =>
