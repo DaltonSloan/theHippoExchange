@@ -31,7 +31,7 @@ services:
     working_dir: /workspace
     command: >
       sh -c "dotnet restore src/HippoExchange.Api/HippoExchange.Api.csproj &&
-             dotnet watch --project src/HippoExchange.Api/HippoExchange.Api.csproj run --urls http://0.0.0.0:80"
+             dotnet run --project src/HippoExchange.Api/HippoExchange.Api.csproj --urls http://0.0.0.0:80"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:80
