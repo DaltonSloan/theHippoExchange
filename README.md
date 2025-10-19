@@ -136,3 +136,13 @@ Once the application is running, you can access the following endpoints:
 ## ☁️ Deployment
 
 This project is configured for continuous deployment to **Google Cloud Run**. Any push to the `main` branch will trigger a new build and deployment via **Google Cloud Build**.
+
+## 📚 Code Documentation
+
+Core services are now annotated with XML documentation comments so consumers can see purpose, parameters, and expected behaviour directly in IntelliSense. If you want to generate reference docs, enable the documentation file switch:
+
+```bash
+dotnet build /p:GenerateDocumentationFile=true
+```
+
+Please follow the same concise style when adding new public methods—cover what the operation does, any important side effects, and meaningful parameter details rather than repeating method names.
