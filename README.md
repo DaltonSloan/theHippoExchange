@@ -160,7 +160,7 @@ Services exposed locally:
 
 - `frontend` → <http://localhost:5173>
 - `api` → <http://localhost:8080>
-- `mongo-express` → <http://localhost:8081>
+- `mongo-express` → <http://localhost:8082>
 
 Optional environment overrides before launching (so Clerk/Cloudinary work end-to-end):
 
