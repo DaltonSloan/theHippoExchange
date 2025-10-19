@@ -147,14 +147,10 @@ namespace HippoExchange.Api.Services
         }
 
         /// <summary>
-        /// Creates demo users with different personas for BOTH Production and Development environments.
-        /// Each user is created twice - once with PROD Clerk ID and once with DEV Clerk ID.
-        /// The users are otherwise identical to ensure consistent testing across environments.
-        /// 
-        /// Personas:
-        /// 1. John Smith - Homeowner with lawn/garden equipment
-        /// 2. Jane Doe - Hobbyist with workshop tools
-        /// 3. Bob Builder - Contractor with professional equipment
+        /// <summary>
+        /// Creates demo users with different personas for both production and development environments.
+        /// Each user is duplicated with matching data but unique Clerk IDs so either environment can reference the same persona.
+        /// Personas include homeowner, hobbyist, and contractor profiles to provide varied asset inventories.
         /// </summary>
         private async Task<List<User>> CreateDemoUsersAsync()
         {

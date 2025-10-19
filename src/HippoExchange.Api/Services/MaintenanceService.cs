@@ -6,37 +6,54 @@ using System.Threading.Tasks;
 
 namespace HippoExchange.Api.Services
 {
+    /// <summary>
+    /// Provides persistence operations for maintenance records tied to assets.
+    /// </summary>
     public class MaintenanceService
     {
         private readonly IMongoCollection<Maintenance> _maintenanceCollection;
 
+        /// <summary>
+        /// Creates a new <see cref="MaintenanceService"/> instance using the shared database connection.
+        /// </summary>
         public MaintenanceService(IMongoDatabase database)
         {
             _maintenanceCollection = database.GetCollection<Maintenance>("maintenance");
         }
 
-        // Create new maintenance record
+        /// <summary>
+        /// Persists a new maintenance record.
+        /// </summary>
         public async Task<Maintenance> CreateMaintenanceAsync(Maintenance record)
         {
             await _maintenanceCollection.InsertOneAsync(record);
             return record;
         }
 
-        // Get all maintenance records for a given asset
+        /// <summary>
+        /// Retrieves maintenance records for a specific asset.
+        /// </summary>
         public async Task<List<Maintenance>> GetMaintenanceByAssetIdAsync(string assetId) =>
             await _maintenanceCollection.Find(m => m.AssetId == assetId).ToListAsync();
 
+        /// <summary>
+        /// Retrieves maintenance records for multiple assets in a single query.
+        /// </summary>
         public async Task<List<Maintenance>> GetMaintenanceByAssetIdsAsync(IEnumerable<string> assetIds)
         {
             var filter = Builders<Maintenance>.Filter.In(m => m.AssetId, assetIds);
             return await _maintenanceCollection.Find(filter).ToListAsync();
         }
 
-        // Get a single maintenance record by ID
+        /// <summary>
+        /// Retrieves a single maintenance record by identifier.
+        /// </summary>
         public async Task<Maintenance?> GetMaintenanceByIdAsync(string id) =>
             await _maintenanceCollection.Find(m => m.Id == id).FirstOrDefaultAsync();
 
-        // Update a maintenance record
+        /// <summary>
+        /// Overwrites a maintenance record with updated values.
+        /// </summary>
         public async Task<bool> UpdateMaintenanceAsync(string id, Maintenance updatedRecord)
         {
             var filter = Builders<Maintenance>.Filter.Eq(m => m.Id, id);
@@ -61,7 +78,9 @@ namespace HippoExchange.Api.Services
             return result.IsAcknowledged && (result.ModifiedCount > 0 || result.MatchedCount > 0);
         }
 
-        // Delete a maintenance record
+        /// <summary>
+        /// Deletes a maintenance record by identifier.
+        /// </summary>
         public async Task<bool> DeleteMaintenanceAsync(string id)
         {
             var result = await _maintenanceCollection.DeleteOneAsync(m => m.Id == id);

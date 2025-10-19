@@ -6,52 +6,75 @@ using System.Threading.Tasks;
 
 namespace HippoExchange.Api.Services
 {
+    /// <summary>
+    /// Provides CRUD operations for asset documents stored in MongoDB.
+    /// </summary>
     public class AssetService
     {
         private readonly IMongoCollection<Assets> _assetsCollection;
 
+        /// <summary>
+        /// Creates a new <see cref="AssetService"/> instance using the shared database connection.
+        /// </summary>
         public AssetService(IMongoDatabase database)
         {
             _assetsCollection = database.GetCollection<Assets>("assets");
         }
 
+        /// <summary>
+        /// Persists a new asset document.
+        /// </summary>
         public async Task<Assets> CreateAssetAsync(Assets newAsset)
         {
             await _assetsCollection.InsertOneAsync(newAsset);
             return newAsset;
         }
 
+        /// <summary>
+        /// Retrieves all assets belonging to the specified owner.
+        /// </summary>
         public async Task<List<Assets>> GetAssetsByOwnerIdAsync(string userId) =>
             await _assetsCollection.Find(a => a.OwnerUserId == userId).ToListAsync();
 
+        /// <summary>
+        /// Retrieves a single asset document by identifier.
+        /// </summary>
         public async Task<Assets?> GetAssetByIdAsync(string assetId) =>
             await _assetsCollection.Find(a => a.Id == assetId).FirstOrDefaultAsync();
 
+        /// <summary>
+        /// Replaces an existing asset document with an updated payload.
+        /// </summary>
         public async Task<bool> ReplaceAssetAsync(string assetId, Assets updatedAsset)
         {
             updatedAsset.Id = assetId;
             var result = await _assetsCollection.ReplaceOneAsync(a => a.Id == assetId, updatedAsset);
             return result.ModifiedCount > 0;
         }
-        public async Task<bool> DeleteAsset(string assetId)//this method is to delete a specified asset 
+
+        /// <summary>
+        /// Deletes an asset document by identifier.
+        /// </summary>
+        public async Task<bool> DeleteAsset(string assetId)
         {
-            //delets the asset by comparing it with its id and returns meta data to use in error handeling
             var result = await _assetsCollection.DeleteOneAsync(a => a.Id == assetId);
-            return result.DeletedCount > 0;//this will return true or false depending on if the delete is successful
+            return result.DeletedCount > 0;
         }
 
+        /// <summary>
+        /// Updates the favorite flag for an asset.
+        /// </summary>
         public async Task<bool> UpdateFavorite(string assetId, bool newValue)
         {
-            //builds the filter to find the asset
             var filter = Builders<Assets>.Filter.Eq(a => a.Id, assetId);
-            //creates the update to put into database 
             var update = Builders<Assets>.Update.Set(a => a.Favorite, newValue);
-            //does the update to the database 
             var result = await _assetsCollection.UpdateOneAsync(filter, update);
-            //returns the results 
             return result.MatchedCount > 0;
         }
-        //Method to get the image list for a given asset
+
+        /// <summary>
+        /// Returns the stored image URLs for an asset.
+        /// </summary>
         public async Task<List<string>?> GetAssetImage(string assetId)
         {
             var filter = Builders<Assets>.Filter.Eq(a => a.Id, assetId);
