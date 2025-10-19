@@ -1,6 +1,5 @@
 using HippoExchange.Models;
 using HippoExchange.Api.Models;
-using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -11,11 +10,9 @@ namespace HippoExchange.Api.Services
     {
         private readonly IMongoCollection<Maintenance> _maintenanceCollection;
 
-        public MaintenanceService(IOptions<MongoSettings> mongoSettings)
+        public MaintenanceService(IMongoDatabase database)
         {
-            var mongoClient = new MongoClient(mongoSettings.Value.ConnectionString);
-            var mongoDatabase = mongoClient.GetDatabase(mongoSettings.Value.DatabaseName);
-            _maintenanceCollection = mongoDatabase.GetCollection<Maintenance>("maintenance");
+            _maintenanceCollection = database.GetCollection<Maintenance>("maintenance");
         }
 
         // Create new maintenance record

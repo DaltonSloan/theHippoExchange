@@ -1,7 +1,6 @@
 using HippoExchange.Models;
 using HippoExchange.Models.Clerk;
 using HippoExchange.Api.Models;
-using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
@@ -25,15 +24,12 @@ namespace HippoExchange.Api.Services
         private readonly IMongoCollection<User> _usersCollection;
         private readonly IMongoCollection<Assets> _assetsCollection;
         private readonly IMongoCollection<Maintenance> _maintenanceCollection;
-        private readonly IMongoDatabase _database;
 
-        public DatabaseSeeder(IOptions<MongoSettings> mongoSettings)
+        public DatabaseSeeder(IMongoDatabase database)
         {
-            var mongoClient = new MongoClient(mongoSettings.Value.ConnectionString);
-            _database = mongoClient.GetDatabase(mongoSettings.Value.DatabaseName);
-            _usersCollection = _database.GetCollection<User>("users");
-            _assetsCollection = _database.GetCollection<Assets>("assets");
-            _maintenanceCollection = _database.GetCollection<Maintenance>("maintenance");
+            _usersCollection = database.GetCollection<User>("users");
+            _assetsCollection = database.GetCollection<Assets>("assets");
+            _maintenanceCollection = database.GetCollection<Maintenance>("maintenance");
         }
 
         /// <summary>
@@ -87,7 +83,7 @@ namespace HippoExchange.Api.Services
             Console.WriteLine($"   • John Smith (Homeowner):  user_33fKj66bKWI3f60HIg0L1tuUvip");
             Console.WriteLine($"   • Jane Doe (Hobbyist):     user_33fKlsH9bgC5XJlaOLXcPrrqXQI");
             Console.WriteLine($"   • Bob Builder (Contractor): user_33fKntiTjEiZ1S9jXSmTwmqhlAc");
-            Console.WriteLine($"\n💡 Usage: Use the appropriate Clerk ID in the X-User-Id header based on your Clerk environment.");
+            Console.WriteLine($"\n💡 Usage: Sign in with the matching Clerk account for your current environment (IDs are listed below for reference).");
             Console.WriteLine($"   All users have identical data except for their Clerk ID.");
         }
 
@@ -126,28 +122,27 @@ namespace HippoExchange.Api.Services
                 .Find(u => demoClerkIds.Contains(u.ClerkId))
                 .ToListAsync();
 
-            if (demoUsers.Any())
+        if (demoUsers.Any())
+        {
+            var demoUserClerkIds = demoUsers.Select(u => u.ClerkId).ToList();
+
+            // Capture asset ids before deleting so related maintenance records can be removed
+            var demoAssetIds = await _assetsCollection
+                .Find(a => demoUserClerkIds.Contains(a.OwnerUserId))
+                .Project(a => a.Id)
+                .ToListAsync();
+
+            if (demoAssetIds.Any())
             {
-                var demoUserClerkIds = demoUsers.Select(u => u.ClerkId).ToList();
+                await _maintenanceCollection.DeleteManyAsync(m => demoAssetIds.Contains(m.AssetId));
+            }
 
-                // Delete assets owned by demo users
-                await _assetsCollection.DeleteManyAsync(a => demoUserClerkIds.Contains(a.OwnerUserId));
+            await _assetsCollection.DeleteManyAsync(a => demoUserClerkIds.Contains(a.OwnerUserId));
 
-                // Delete maintenance records for demo assets
-                var demoAssetIds = await _assetsCollection
-                    .Find(a => demoUserClerkIds.Contains(a.OwnerUserId))
-                    .Project(a => a.Id)
-                    .ToListAsync();
+            // Delete demo users
+            await _usersCollection.DeleteManyAsync(u => demoClerkIds.Contains(u.ClerkId));
 
-                if (demoAssetIds.Any())
-                {
-                    await _maintenanceCollection.DeleteManyAsync(m => demoAssetIds.Contains(m.AssetId));
-                }
-
-                // Delete demo users
-                await _usersCollection.DeleteManyAsync(u => demoClerkIds.Contains(u.ClerkId));
-
-                Console.WriteLine($"   Removed {demoUsers.Count} demo users and their associated data");
+            Console.WriteLine($"   Removed {demoUsers.Count} demo users and their associated data");
             }
         }
 

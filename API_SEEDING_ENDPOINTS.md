@@ -1,5 +1,7 @@
 # Database Seeding API Endpoints
 
+> **Authentication update:** Use `Authorization: Bearer <token>` headers when calling these endpoints; the previous `X-User-Id` header has been retired.
+
 Quick reference for database seeding API endpoints.
 
 ## Endpoints Summary

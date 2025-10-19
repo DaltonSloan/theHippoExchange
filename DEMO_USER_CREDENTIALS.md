@@ -1,5 +1,7 @@
 # Demo User Credentials - Quick Reference
 
+> **Authentication update:** API requests now require a Clerk-issued bearer token in the `Authorization` header. Replace any `X-User-Id` examples below with `Authorization: Bearer <token>` when calling the API directly.
+
 ## Real Clerk User IDs
 
 These are the actual Clerk user IDs created in your Clerk dashboard. Use these for testing with the seeded data.

@@ -1,7 +1,6 @@
 using HippoExchange.Models;
 using HippoExchange.Models.Clerk;
 using HippoExchange.Api.Models;
-using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
 namespace HippoExchange.Api.Services
@@ -10,11 +9,9 @@ namespace HippoExchange.Api.Services
     {
         private readonly IMongoCollection<User> _usersCollection;
 
-        public UserService(IOptions<MongoSettings> mongoSettings)
+        public UserService(IMongoDatabase database)
         {
-            var mongoClient = new MongoClient(mongoSettings.Value.ConnectionString);
-            var mongoDatabase = mongoClient.GetDatabase(mongoSettings.Value.DatabaseName);
-            _usersCollection = mongoDatabase.GetCollection<User>("users");
+            _usersCollection = database.GetCollection<User>("users");
         }
 
         public async Task CreateUserAsync(User newUser) =>

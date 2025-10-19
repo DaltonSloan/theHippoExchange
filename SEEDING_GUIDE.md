@@ -1,5 +1,7 @@
 # Database Seeding Guide
 
+> **Authentication update:** The API now enforces Clerk bearer-token authentication. Wherever this guide previously referenced the `X-User-Id` header, use `Authorization: Bearer <token>` instead.
+
 ## Overview
 
 The HippoExchange application now includes a comprehensive database seeding feature that automatically populates the database with realistic demo data for development and testing purposes.

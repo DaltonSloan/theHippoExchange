@@ -1,5 +1,4 @@
 using HippoExchange.Models;
-using Microsoft.Extensions.Options;
 using HippoExchange.Api.Models;
 using MongoDB.Driver;
 using System.Collections.Generic;
@@ -11,11 +10,9 @@ namespace HippoExchange.Api.Services
     {
         private readonly IMongoCollection<Assets> _assetsCollection;
 
-        public AssetService(IOptions<MongoSettings> mongoSettings)
+        public AssetService(IMongoDatabase database)
         {
-            var mongoClient = new MongoClient(mongoSettings.Value.ConnectionString);
-            var mongoDatabase = mongoClient.GetDatabase(mongoSettings.Value.DatabaseName);
-            _assetsCollection = mongoDatabase.GetCollection<Assets>("assets");
+            _assetsCollection = database.GetCollection<Assets>("assets");
         }
 
         public async Task<Assets> CreateAssetAsync(Assets newAsset)

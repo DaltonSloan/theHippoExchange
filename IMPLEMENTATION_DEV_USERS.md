@@ -1,5 +1,7 @@
 # Implementation: Dev-Specific Users for Database Seeding
 
+> **Authentication update:** API examples now require Clerk bearer tokens. Swap any `X-User-Id` headers mentioned below with `Authorization: Bearer <token>`.
+
 ## Overview
 This implementation adds support for both **Production** and **Development** Clerk user IDs in the database seeding script. The seeder now creates 6 demo users (3 PROD + 3 DEV) with identical data except for their Clerk IDs.
 

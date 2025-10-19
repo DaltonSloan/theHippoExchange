@@ -1,5 +1,7 @@
 # Dev User Quick Reference Guide
 
+> **Authentication update:** Replace all `X-User-Id` references with `Authorization: Bearer <token>` using a valid Clerk session token when interacting with the API.
+
 ## Quick Copy-Paste Clerk IDs
 
 ### Development Environment (Local Testing)

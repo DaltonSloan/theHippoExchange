@@ -1,5 +1,7 @@
 # HippoExchange Maintenance Endpoints - Comprehensive Guide
 
+> **Authentication update:** Maintenance endpoints now require Clerk bearer tokens and enforce ownership checks; earlier notes about the temporary `X-User-Id` header are obsolete.
+
 ## Table of Contents
 1. [Overview](#overview)
 2. [Data Model](#data-model)

@@ -103,20 +103,19 @@ The seeding script creates:
 
 ### Using Demo Users
 
-To test API endpoints with demo users, use their Clerk IDs in the `X-User-Id` header:
+> **Authentication update:** The API now requires a valid Clerk session token in the `Authorization` header. The legacy `X-User-Id` header is no longer accepted.
+
+To exercise endpoints directly (for example with `curl` or Postman):
+
+1. Sign in to the frontend or Clerk dashboard with one of the demo users listed below.
+2. Retrieve a session token (`__session` cookie value or via the [Clerk CLI](https://clerk.com/docs/reference/clerk-cli/sessions#get-session-tokens)).
+3. Include the token in the `Authorization` header:
 
 ```bash
-# Example: Get assets for John Smith
-curl -H "X-User-Id: user_33UeIDzYloCoZABaaCR1WPmV7MT" http://localhost:8080/api/assets
-
-# Example: Get assets for Jane Doe
-curl -H "X-User-Id: user_33UeKv6eNbmLb2HClHd1PN51AZ5" http://localhost:8080/api/assets
-
-# Example: Get assets for Bob Builder
-curl -H "X-User-Id: user_33UeOCZ7LGxjHJ8dkwnAIozslO0" http://localhost:8080/api/assets
+curl -H "Authorization: Bearer <CLERK_SESSION_TOKEN>" http://localhost:8080/assets
 ```
 
-**Demo User Clerk IDs:**
+**Demo Clerk IDs (for reference):**
 - John Smith (Homeowner): `user_33UeIDzYloCoZABaaCR1WPmV7MT`
 - Jane Doe (Hobbyist): `user_33UeKv6eNbmLb2HClHd1PN51AZ5`
 - Bob Builder (Contractor): `user_33UeOCZ7LGxjHJ8dkwnAIozslO0`

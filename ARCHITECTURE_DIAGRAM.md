@@ -1,5 +1,7 @@
 # Database Seeding Architecture
 
+> **Authentication update:** Legacy references to the `X-User-Id` header in this diagram have been superseded by standard `Authorization: Bearer <token>` authentication handled by Clerk.
+
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                      HippoExchange Application                  │

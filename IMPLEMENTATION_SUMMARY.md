@@ -1,5 +1,7 @@
 # Database Seeding Feature - Implementation Summary
 
+> **Authentication update:** Replace any `X-User-Id` usage with `Authorization: Bearer <token>` when hitting these endpoints directly.
+
 ## ✅ Completed Features
 
 ### 1. Core Seeding Service
