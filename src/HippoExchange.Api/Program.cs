@@ -649,7 +649,7 @@ app.MapPatch("/users/{userId}", async ([FromServices] UserService userService, H
 app.MapPatch("/update-clerk-user/{userId}", async (string userId, HttpContext ctx,
     [FromBody] ClerkUserUpdateRequest updateRequest) =>
 {
-    var clerkApiKey = Environment.GetEnvironmentVariable("CLERK_API_KEY");
+    var clerkApiKey = Environment.GetEnvironmentVariable("CLERK_SECRET_KEY");
     var client = new HttpClient();
 
     client.DefaultRequestHeaders.Authorization = 
@@ -761,5 +761,6 @@ app.MapGet("/api/admin/seed/status", async ([FromServices] UserService userServi
 .WithName("GetSeedStatus")
 .WithTags("Admin");
     
+
 
 app.Run();
