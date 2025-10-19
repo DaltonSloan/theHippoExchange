@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0
+FROM mcr.microsoft.com/dotnet/sdk:9.0
 
 # Nice-to-haves for dev
 RUN apt-get update && apt-get install -y git curl wget vim sudo && rm -rf /var/lib/apt/lists/*

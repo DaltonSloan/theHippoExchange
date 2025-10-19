@@ -37,13 +37,13 @@ services:
       ASPNETCORE_URLS: http://+:80
       Mongo__ConnectionString: "mongodb://devuser:devpass@mongo:27017/?authSource=admin"
       Mongo__DatabaseName: "hippo-exchange"
-      CLOUDINARY_URL: "${CLOUDINARY_URL:-cloudinary://sample:sample@sample}"
-      CLERK__ISSUER: "${CLERK_ISSUER:-https://example.com}"
-      CLERK__AUDIENCE: "${CLERK_AUDIENCE:-authenticated}"
+      CLOUDINARY_URL: "${CLOUDINARY_URL:?CLOUDINARY_URL is required}"
+      CLERK__ISSUER: "${CLERK__ISSUER:-https://in-husky-23.clerk.accounts.dev}"
+      CLERK__AUDIENCE: "${CLERK__AUDIENCE:-authenticated}"
     volumes:
       - .:/workspace
     ports:
-      - "8080:80"
+      - "8080:8080"
     depends_on:
       - mongo
     restart: unless-stopped
@@ -55,12 +55,13 @@ services:
     command: >
       sh -c "corepack enable pnpm &&
              pnpm install &&
-             pnpm dev --host 0.0.0.0 --port 5173"
+             pnpm dev --host 0.0.0.0 --port 3000"
     environment:
       PNPM_HOME: /pnpm-store
       PATH: /pnpm-store:$PATH
       VITE_API_BASE_URL: "${VITE_API_BASE_URL:-http://localhost:8080}"
-      VITE_CLERK_PUBLISHABLE_KEY: "${VITE_CLERK_PUBLISHABLE_KEY:-}"
+      VITE_CLERK_PUBLISHABLE_KEY: "${VITE_CLERK_PUBLISHABLE_KEY:?VITE_CLERK_PUBLISHABLE_KEY is required}"
+      VITE_CLERK_FRONTEND_API: "${VITE_CLERK_FRONTEND_API:?VITE_CLERK_FRONTEND_API is required}"
       VITE_CLERK_JWT_TEMPLATE: "${VITE_CLERK_JWT_TEMPLATE:-}"
       PNPM_YES: "true"
       CI: "true"
@@ -69,7 +70,7 @@ services:
       - pnpm-store:/pnpm-store
       - frontend-node-modules:/app/node_modules
     ports:
-      - "5173:5173"
+      - "3000:3000"
     depends_on:
       - api
     restart: unless-stopped

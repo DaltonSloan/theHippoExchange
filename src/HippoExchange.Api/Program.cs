@@ -32,9 +32,17 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Svix;
 using Svix.Exceptions;
+using System.Linq;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Json;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+foreach (var source in builder.Configuration.Sources.OfType<JsonConfigurationSource>())
+{
+    source.ReloadOnChange = false;
+}
 
 // Check for seeding command before building the application
 var shouldSeed = args.Contains("seed") || args.Contains("--seed");
@@ -87,7 +95,8 @@ builder.Services.AddCors(options =>
 
         policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
