@@ -1,0 +1,77 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:6
+    container_name: hippoexchange-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: devuser
+      MONGO_INITDB_ROOT_PASSWORD: devpass
+      MONGO_INITDB_DATABASE: hippo-exchange
+    ports:
+      - "27017:27017"
+
+  mongo-express:
+    image: mongo-express:1.0.2-18
+    container_name: hippoexchange-mongo-express
+    restart: unless-stopped
+    environment:
+      ME_CONFIG_MONGODB_URL: "mongodb://devuser:devpass@mongo:27017/hippo-exchange?authSource=admin"
+      ME_CONFIG_BASICAUTH_USERNAME: devuser
+      ME_CONFIG_BASICAUTH_PASSWORD: devpass
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mongo
+
+  api:
+    build:
+      context: ./src/HippoExchange.Api
+      dockerfile: Dockerfile.dev
+    container_name: hippoexchange-api
+    working_dir: /workspace
+    command: >
+      sh -c "dotnet restore src/HippoExchange.Api/HippoExchange.Api.csproj &&
+             dotnet watch --project src/HippoExchange.Api/HippoExchange.Api.csproj run --urls http://0.0.0.0:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:80
+      Mongo__ConnectionString: "mongodb://devuser:devpass@mongo:27017/?authSource=admin"
+      Mongo__DatabaseName: "hippo-exchange"
+      CLOUDINARY_URL: "${CLOUDINARY_URL:-cloudinary://sample:sample@sample}"
+      CLERK__ISSUER: "${CLERK_ISSUER:-https://example.com}"
+      CLERK__AUDIENCE: "${CLERK_AUDIENCE:-authenticated}"
+    volumes:
+      - .:/workspace
+    ports:
+      - "8080:80"
+    depends_on:
+      - mongo
+    restart: unless-stopped
+
+  frontend:
+    image: node:20
+    container_name: hippoexchange-frontend
+    working_dir: /app
+    command: >
+      sh -c "corepack enable pnpm &&
+             pnpm install &&
+             pnpm dev --host 0.0.0.0 --port 5173"
+    environment:
+      PNPM_HOME: /pnpm-store
+      PATH: /pnpm-store:$PATH
+      VITE_API_BASE_URL: "${VITE_API_BASE_URL:-http://localhost:8080}"
+      VITE_CLERK_PUBLISHABLE_KEY: "${VITE_CLERK_PUBLISHABLE_KEY:-}"
+      VITE_CLERK_JWT_TEMPLATE: "${VITE_CLERK_JWT_TEMPLATE:-}"
+    volumes:
+      - ../the-hippo-exchange:/app
+      - pnpm-store:/pnpm-store
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  pnpm-store:

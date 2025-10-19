@@ -146,3 +146,28 @@ dotnet build /p:GenerateDocumentationFile=true
 ```
 
 Please follow the same concise style when adding new public methods—cover what the operation does, any important side effects, and meaningful parameter details rather than repeating method names.
+
+## 🐳 Run Frontend + Backend Together (Docker)
+
+A root-level compose file lets you spin up MongoDB, the ASP.NET Core API, and the Vite client in one command:
+
+```bash
+# from the repository root
+docker compose -f theHippoExchange/docker-compose.local.yml up --build
+```
+
+Services exposed locally:
+
+- `frontend` → <http://localhost:5173>
+- `api` → <http://localhost:8080>
+- `mongo-express` → <http://localhost:8081>
+
+Optional environment overrides before launching (so Clerk/Cloudinary work end-to-end):
+
+```bash
+export VITE_CLERK_PUBLISHABLE_KEY=pk_test_xxx
+export VITE_CLERK_JWT_TEMPLATE=mobile
+export CLOUDINARY_URL=cloudinary://<key>:<secret>@<cloud>
+```
+
+Mongo uses the baked-in `devuser` / `devpass` credentials and stores data inside the container; remove the container to reset its data volume.
