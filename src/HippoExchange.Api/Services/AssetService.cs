@@ -3,6 +3,8 @@ using HippoExchange.Api.Models;
 using MongoDB.Driver;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using MongoDB.Bson;
+using System.Text.RegularExpressions;
 
 namespace HippoExchange.Api.Services
 {
@@ -35,6 +37,38 @@ namespace HippoExchange.Api.Services
         /// </summary>
         public async Task<List<Assets>> GetAssetsByOwnerIdAsync(string userId) =>
             await _assetsCollection.Find(a => a.OwnerUserId == userId).ToListAsync();
+
+        /// <summary>
+        /// Retrieves a community feed of assets that do not belong to the requesting user.
+        /// </summary>
+        public async Task<List<Assets>> GetCommunityAssetsAsync(string requesterId, int limit, string? searchTerm = null)
+        {
+            var filters = new List<FilterDefinition<Assets>>
+            {
+                Builders<Assets>.Filter.Ne(a => a.OwnerUserId, requesterId)
+            };
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var escaped = Regex.Escape(searchTerm.Trim());
+                var regex = new BsonRegularExpression(escaped, "i");
+                filters.Add(Builders<Assets>.Filter.Or(
+                    Builders<Assets>.Filter.Regex(a => a.ItemName, regex),
+                    Builders<Assets>.Filter.Regex(a => a.BrandName, regex),
+                    Builders<Assets>.Filter.Regex(a => a.Category, regex),
+                    Builders<Assets>.Filter.Regex(a => a.CurrentLocation, regex)
+                ));
+            }
+
+            var query = _assetsCollection.Find(Builders<Assets>.Filter.And(filters));
+
+            if (limit > 0)
+            {
+                query = query.Limit(limit);
+            }
+
+            return await query.ToListAsync();
+        }
 
         /// <summary>
         /// Retrieves a single asset document by identifier.

@@ -138,6 +138,7 @@ builder.Services.AddSingleton(serviceProvider =>
 builder.Services.AddSingleton<UserService>();
 builder.Services.AddSingleton<AssetService>();
 builder.Services.AddSingleton<MaintenanceService>();
+builder.Services.AddSingleton<BorrowService>();
 builder.Services.AddSingleton<DatabaseSeeder>();
 builder.Services.AddHttpClient();
 
@@ -325,6 +326,22 @@ app.MapGet("/assets", async ([FromServices] AssetService assetService, HttpConte
     var userId = GetUserId(ctx);
     if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
 
+    var scope = ctx.Request.Query["scope"].ToString();
+
+    if (!string.IsNullOrEmpty(scope) && scope.Equals("community", StringComparison.OrdinalIgnoreCase))
+    {
+        var limitQuery = ctx.Request.Query["limit"].ToString();
+        var limit = 100;
+        if (!string.IsNullOrWhiteSpace(limitQuery) && int.TryParse(limitQuery, out var parsed))
+        {
+            limit = Math.Clamp(parsed, 1, 500);
+        }
+
+        var searchTerm = ctx.Request.Query["search"].ToString();
+        var communityAssets = await assetService.GetCommunityAssetsAsync(userId, limit, searchTerm);
+        return Results.Ok(communityAssets);
+    }
+
     var assets = await assetService.GetAssetsByOwnerIdAsync(userId);
     return Results.Ok(assets);
 }).RequireAuthorization();
@@ -340,6 +357,120 @@ app.MapGet("/assets/{assetId}", async ([FromServices] AssetService assetService,
     if (asset.OwnerUserId != userId) return Results.Forbid();
 
     return Results.Ok(asset);
+}).RequireAuthorization();
+
+// Borrow request endpoints
+app.MapPost("/borrow-requests", async (
+    [FromServices] BorrowService borrowService,
+    HttpContext ctx,
+    [FromBody] CreateBorrowRequest request) =>
+{
+    var borrowerId = GetUserId(ctx);
+    if (string.IsNullOrWhiteSpace(borrowerId)) return Results.Unauthorized();
+
+    var validationResults = new List<ValidationResult>();
+    var validationContext = new ValidationContext(request, null, null);
+    if (!Validator.TryValidateObject(request, validationContext, validationResults, true))
+    {
+        return Results.BadRequest(new { errors = validationResults.Select(v => v.ErrorMessage) });
+    }
+
+    try
+    {
+        var created = await borrowService.CreateRequestAsync(request, borrowerId);
+        return Results.Created($"/borrow-requests/{created.Id}", created);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+    catch (UnauthorizedAccessException)
+    {
+        return Results.Forbid();
+    }
+}).RequireAuthorization();
+
+app.MapGet("/borrow-requests/borrower", async (
+    [FromServices] BorrowService borrowService,
+    HttpContext ctx) =>
+{
+    var borrowerId = GetUserId(ctx);
+    if (string.IsNullOrWhiteSpace(borrowerId)) return Results.Unauthorized();
+
+    var summaries = await borrowService.GetBorrowerSummariesAsync(borrowerId);
+    return Results.Ok(summaries);
+}).RequireAuthorization();
+
+app.MapGet("/borrow-requests/owner", async (
+    [FromServices] BorrowService borrowService,
+    HttpContext ctx) =>
+{
+    var ownerId = GetUserId(ctx);
+    if (string.IsNullOrWhiteSpace(ownerId)) return Results.Unauthorized();
+
+    var summaries = await borrowService.GetOwnerSummariesAsync(ownerId);
+    return Results.Ok(summaries);
+}).RequireAuthorization();
+
+app.MapPatch("/borrow-requests/{requestId}/decision", async (
+    [FromServices] BorrowService borrowService,
+    HttpContext ctx,
+    string requestId,
+    [FromBody] BorrowDecisionRequest request) =>
+{
+    var ownerId = GetUserId(ctx);
+    if (string.IsNullOrWhiteSpace(ownerId)) return Results.Unauthorized();
+
+    try
+    {
+        var updated = await borrowService.DecideAsync(requestId, ownerId, request);
+        if (updated is null) return Results.NotFound();
+        return Results.Ok(updated);
+    }
+    catch (UnauthorizedAccessException)
+    {
+        return Results.Forbid();
+    }
+}).RequireAuthorization();
+
+app.MapPatch("/borrow-requests/{requestId}/complete", async (
+    [FromServices] BorrowService borrowService,
+    HttpContext ctx,
+    string requestId,
+    [FromBody] CompleteBorrowRequest request) =>
+{
+    var ownerId = GetUserId(ctx);
+    if (string.IsNullOrWhiteSpace(ownerId)) return Results.Unauthorized();
+
+    try
+    {
+        var updated = await borrowService.CompleteAsync(requestId, ownerId, request.Note);
+        if (updated is null) return Results.NotFound();
+        return Results.Ok(updated);
+    }
+    catch (UnauthorizedAccessException)
+    {
+        return Results.Forbid();
+    }
+}).RequireAuthorization();
+
+app.MapGet("/borrow-requests/{requestId:length(24)}", async (
+    [FromServices] BorrowService borrowService,
+    HttpContext ctx,
+    string requestId) =>
+{
+    var userId = GetUserId(ctx);
+    if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
+
+    var borrowRequest = await borrowService.GetByIdAsync(requestId);
+    if (borrowRequest is null) return Results.NotFound();
+
+    if (borrowRequest.BorrowerUserId != userId && borrowRequest.OwnerUserId != userId)
+    {
+        return Results.Forbid();
+    }
+
+    return Results.Ok(borrowRequest);
 }).RequireAuthorization();
 
 // PUT /assets/{assetId} - Update an asset
@@ -870,11 +1001,8 @@ app.MapPatch("/update-clerk-user/{userId}", async (
 // POST /api/admin/seed - Seed the database with demo data
 app.MapPost("/api/admin/seed", async (
     [FromServices] DatabaseSeeder seeder,
-    HttpContext ctx,
     IHostEnvironment env) =>
 {
-    var requesterId = GetUserId(ctx);
-    if (string.IsNullOrWhiteSpace(requesterId)) return Results.Unauthorized();
     if (!env.IsDevelopment())
     {
         return Results.Forbid();
@@ -902,7 +1030,7 @@ app.MapPost("/api/admin/seed", async (
             title: "Seeding failed"
         );
     }
-}).RequireAuthorization()
+})
 .WithName("SeedDatabase")
 .WithTags("Admin");
 

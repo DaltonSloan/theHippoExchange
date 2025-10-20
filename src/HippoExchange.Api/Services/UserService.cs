@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using HippoExchange.Models;
 using HippoExchange.Models.Clerk;
 using HippoExchange.Api.Models;
@@ -67,6 +69,27 @@ namespace HippoExchange.Api.Services
         /// </summary>
         public async Task<User> GetByClerkIdAsync(string clerkId) =>
             await _usersCollection.Find(u => u.ClerkId == clerkId).FirstOrDefaultAsync();
+
+        /// <summary>
+        /// Retrieves multiple users by their Clerk identifiers.
+        /// </summary>
+        public async Task<Dictionary<string, User>> GetUsersByIdsAsync(IEnumerable<string> clerkIds)
+        {
+            var distinctIds = clerkIds
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .Select(id => id.Trim())
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+
+            if (distinctIds.Count == 0)
+            {
+                return new Dictionary<string, User>();
+            }
+
+            var filter = Builders<User>.Filter.In(u => u.ClerkId, distinctIds);
+            var users = await _usersCollection.Find(filter).ToListAsync();
+            return users.ToDictionary(u => u.ClerkId, StringComparer.Ordinal);
+        }
 
         /// <summary>
         /// Updates a user's profile data from the application-provided payload.
