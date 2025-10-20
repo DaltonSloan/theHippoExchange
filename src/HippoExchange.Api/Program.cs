@@ -42,8 +42,6 @@ builder.Services.AddCors(options =>
 builder.WebHost.UseUrls("http://*:8080");
 
 
-
-
 // If not in development, fetch secrets from Google Secret Manager
 if (!builder.Environment.IsDevelopment())
 {
@@ -56,6 +54,9 @@ if (!builder.Environment.IsDevelopment())
         var mongoResult = client.AccessSecretVersion(mongoSecretVersionName);
         builder.Configuration["Mongo:ConnectionString"] = mongoResult.Payload.Data.ToStringUtf8();
 
+    // Fetch Clerk Secret Key
+    builder.Configuration["CLERK_SECRET_KEY"] = GetClerkSecretKey.GetLatestValue();
+
         // Fetch Cloudinary URL
         var cloudinarySecretVersionName = new SecretVersionName("thehippoexchange-471003", "CLOUDINARY_URL", "latest");
         var cloudinaryResult = client.AccessSecretVersion(cloudinarySecretVersionName);
@@ -67,6 +68,7 @@ if (!builder.Environment.IsDevelopment())
         throw;
     }
 }
+
 
 // Configure JSON options to handle camelCase from clients
 builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
@@ -647,9 +649,14 @@ app.MapPatch("/users/{userId}", async ([FromServices] UserService userService, H
 // A patch endpoint to allow for the app devs to talk to clerk and update user info
 // IMPORTANT: Requires all fields to be included, whether or not they were changed
 app.MapPatch("/update-clerk-user/{userId}", async (string userId, HttpContext ctx,
-    [FromBody] ClerkUserUpdateRequest updateRequest) =>
+    [FromBody] ClerkUserUpdateRequest updateRequest,
+    [FromServices] IConfiguration configuration) =>
 {
-    var clerkApiKey = Environment.GetEnvironmentVariable("CLERK_SECRET_KEY");
+    var clerkApiKey = configuration["CLERK_SECRET_KEY"] ?? Environment.GetEnvironmentVariable("CLERK_SECRET_KEY");
+    if (string.IsNullOrWhiteSpace(clerkApiKey))
+    {
+        return Results.Problem("Clerk secret key is not configured.", statusCode: StatusCodes.Status500InternalServerError);
+    }
     var client = new HttpClient();
 
     client.DefaultRequestHeaders.Authorization = 
@@ -764,3 +771,17 @@ app.MapGet("/api/admin/seed/status", async ([FromServices] UserService userServi
 
 
 app.Run();
+
+
+public static class GetClerkSecretKey
+{
+    private static readonly SecretManagerServiceClient Client = SecretManagerServiceClient.Create();
+    private static readonly SecretVersionName SecretVersion =
+        new SecretVersionName("thehippoexchange-471003", "CLERK_SECRET_KEY", "latest");
+
+    public static string GetLatestValue()
+    {
+        var result = Client.AccessSecretVersion(SecretVersion);
+        return result.Payload.Data.ToStringUtf8();
+    }
+}
